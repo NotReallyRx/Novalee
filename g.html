@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="main.css" />
+</head>
+<body>
+
+<div id="app">
+
+  <div id="main">
+
+    <!-- iframe frame -->
+    <div id="frame-outer">
+      <div id="load-bar"></div>
+      <iframe
+        id="game-iframe"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+        allowfullscreen
+      ></iframe>
+    </div>
+
+    <!-- controls: fullscreen + reload in one rounded container -->
+    <div id="controls">
+      <button class="ctrl-btn" data-tip="Fullscreen" onclick="toggleFullscreen()">
+        <svg viewBox="0 0 24 24">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3"/>
+          <path d="M21 8V5a2 2 0 0 0-2-2h-3"/>
+          <path d="M3 16v3a2 2 0 0 0 2 2h3"/>
+          <path d="M16 21h3a2 2 0 0 0 2-2v-3"/>
+        </svg>
+      </button>
+      <button class="ctrl-btn" data-tip="Reload" onclick="reloadFrame()">
+        <svg viewBox="0 0 24 24">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+        </svg>
+      </button>
+      <button class="ctrl-btn" data-tip="Pop out" onclick="popOut()">
+        <svg viewBox="0 0 24 24">
+          <path d="M15 3h6v6"/>
+          <path d="M10 14 21 3"/>
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+        </svg>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- toolbar: plain nav links, no panels -->
+  <div id="toolbar">
+    <a class="tb-btn" href="/">Home</a>
+    <a class="tb-btn" href="/games">Games</a>
+    <span id="tb-label"></span>
+    <a class="tb-btn" href="/s.html">Settings</a>
+  </div>
+
+</div>
+
+<script>
+  const iframe  = document.getElementById('game-iframe');
+  const loadBar = document.getElementById('load-bar');
+  const label   = document.getElementById('tb-label');
+
+  // Parse query string — first param wins
+  // ?g=slope  →  src=/g/slope,  label="slope"
+  // ?a=snake  →  src=/a/snake,  label="snake"
+  const params = new URLSearchParams(window.location.search);
+  let currentSrc = null;
+  let currentKey = null;
+
+  for (const [prefix, key] of params.entries()) {
+    currentSrc = `/${prefix}/${key}`;
+    currentKey = key;
+    break;
+  }
+
+  // No query param — fall back to last saved game
+  if (!currentSrc) {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem('last'));
+      if (saved) { currentSrc = saved.src; currentKey = saved.key; }
+    } catch {}
+  }
+
+  if (currentSrc) {
+    sessionStorage.setItem('last', JSON.stringify({ src: currentSrc, key: currentKey }));
+    history.replaceState(null, '', window.location.pathname);
+    label.textContent = currentKey.replace(/-/g, ' ');
+    startLoad();
+    iframe.src = currentSrc;
+    iframe.addEventListener('load', finishLoad, { once: true });
+  }
+
+  function startLoad() {
+    loadBar.style.transition = 'transform .35s ease';
+    loadBar.style.transform  = 'scaleX(.45)';
+    setTimeout(() => { loadBar.style.transform = 'scaleX(.75)'; }, 300);
+  }
+
+  function finishLoad() {
+    loadBar.style.transform = 'scaleX(1)';
+    setTimeout(() => {
+      loadBar.style.transition = 'none';
+      loadBar.style.transform  = 'scaleX(0)';
+    }, 380);
+  }
+
+  function reloadFrame() {
+    if (!iframe.src) return;
+    startLoad();
+    iframe.src = iframe.src;
+    iframe.addEventListener('load', finishLoad, { once: true });
+  }
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.getElementById('frame-outer')
+        .requestFullscreen()
+        .catch(() => document.documentElement.requestFullscreen());
+    } else {
+      document.exitFullscreen();
+    }
+  }
+
+  function popOut() {
+    if (currentSrc) window.open(currentSrc, '_blank');
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'F11')             { e.preventDefault(); toggleFullscreen(); }
+    if (e.ctrlKey && e.key === 'r') { e.preventDefault(); reloadFrame(); }
+  });
+</script>
+
+</body>
+</html>
