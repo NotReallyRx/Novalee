@@ -11,11 +11,11 @@ games:
     search:
       - ddlc
   - name: Class of '09
-    repo: SoupcanUBG/c09
-    file: g/c.html
+    repo: fkrbt/web-port
+    file: class-of-09/index.html
     prefix: gh
     tag: main
-    cdn: raw
+    cdn: jsdelivr
     credit: mysticful
     cover: https://e.snmc.io/lk/o/x/f32f7845aadd79ec99c22ece60bb2b88/11265542
     search:
