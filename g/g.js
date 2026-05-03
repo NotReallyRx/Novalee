@@ -55,26 +55,22 @@ function scoreMatch(query, text) {
 
   if (!query) return 1;
 
-  if (text === query) return 1;
+  const tokens = text.split(/\s+/);
 
-  if (text.includes(query)) return 0.85;
+  let bestScore = 0;
 
-  const qWords = query.split(/\s+/);
-  const tWords = text.split(/\s+/);
+  for (const token of tokens) {
+    const lev = levenshteinScore(query, token);
 
-  let wordHits = 0;
+    const exact = token === query ? 1 : 0;
+    const includes = token.includes(query) ? 0.9 : 0;
 
-  for (const q of qWords) {
-    if (tWords.some(t => t.includes(q))) {
-      wordHits++;
-    }
+    const score = Math.max(lev, exact, includes);
+
+    if (score > bestScore) bestScore = score;
   }
 
-  const wordScore = wordHits / qWords.length;
-
-  const levScore = levenshteinScore(query, text);
-
-  return (levScore * 0.7) + (wordScore * 0.3);
+  return bestScore;
 }
 
 /* =========================
