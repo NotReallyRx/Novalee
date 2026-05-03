@@ -3,6 +3,19 @@ const loadBar = document.getElementById('load-bar');
 const label   = document.getElementById('tb-label');
 
 const CDN_HTML = 'https://cdn.jsdelivr.net/gh/freebuisness/html@main';
+function resolveCdn(cdn, repo, tag, file) {
+  switch (cdn) {
+    case 'githack':
+      return `https://raw.githack.com/${repo}/${tag}/${file}`;
+
+    case 'raw':
+      return `https://raw.githubusercontent.com/${repo}/${tag}/${file}`;
+
+    case 'jsdelivr':
+    default:
+      return `https://cdn.jsdelivr.net/gh/${repo}@${tag}/${file}`;
+  }
+}
 
 const params = new URLSearchParams(window.location.search);
 
@@ -14,10 +27,11 @@ let isCdn = false;
 const gh   = params.get('gh');
 const file = params.get('f');
 const tag  = params.get('tag') || 'main';
+const cdn  = params.get('cdn') || 'jsdelivr';
 
 if (gh && file) {
   isCdn = true;
-  currentSrc = `https://cdn.jsdelivr.net/gh/${gh}@${tag}/${file}`;
+  currentSrc = resolveCdn(cdn, gh, tag, file);;
   currentKey = file.split('/').pop().replace('.html', '');
 } else {
   // existing system
