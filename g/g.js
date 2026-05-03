@@ -1,5 +1,6 @@
 const CDN_COVERS = 'https://cdn.jsdelivr.net/gh/freebuisness/covers@main';
 const grid = document.getElementById('grid');
+const SEARCH_THRESHOLD = 0.5; // Adjust this value to make search more strict or lenient
 
 /* =========================
    LEVENSHTEIN DISTANCE
@@ -55,22 +56,24 @@ function scoreMatch(query, text) {
 
   if (!query) return 1;
 
-  const tokens = text.split(/\s+/);
+  const tokens = text.split(/\s+/); // Split by space to compare each token (word)
 
   let bestScore = 0;
 
+  // Compare query against each token in the text (title/search terms)
   for (const token of tokens) {
     const lev = levenshteinScore(query, token);
 
     const exact = token === query ? 1 : 0;
     const includes = token.includes(query) ? 0.9 : 0;
 
+    // Take the best score (exact match, fuzzy match, or contains match)
     const score = Math.max(lev, exact, includes);
 
     if (score > bestScore) bestScore = score;
   }
 
-  return bestScore;
+  return bestScore; // Return the best score for this token
 }
 
 /* =========================
@@ -83,7 +86,6 @@ fetch('/g/g.yml')
     const games = yamlData.games;
 
     games.forEach(game => {
-
       const href = game.prefix === 'gh'
         ? `/i/?gh=${game.repo}`
           + `&f=${encodeURIComponent(game.file)}`
@@ -152,27 +154,29 @@ fetch('/g/g.yml')
     const searchBar = document.getElementById('search-bar');
 
     searchBar.addEventListener('input', (e) => {
-      const query = e.target.value;
+      const query = e.target.value.trim().toLowerCase(); // Capture search input
 
       const cards = Array.from(document.querySelectorAll('.game-card'));
 
       const ranked = cards.map(card => {
-        const data = card.dataset.search || '';
+        const data = card.dataset.search || ''; // Get search data from the card
         return {
           card,
-          score: scoreMatch(query, data)
+          score: scoreMatch(query, data) // Get score for the match
         };
       });
 
+      // Sort cards by their matching score (descending)
       ranked.sort((a, b) => b.score - a.score);
 
+      // Loop through and display or hide cards based on score and threshold
       ranked.forEach(({ card, score }) => {
-        const visible = score > 0.3;
+        const visible = score >= SEARCH_THRESHOLD; // Only show if score passes threshold
 
-        card.style.display = visible ? '' : 'none';
-        card.style.opacity = visible ? '1' : '0.25';
+        card.style.display = visible ? '' : 'none';  // Show or hide based on visibility
+        card.style.opacity = visible ? '1' : '0.25'; // Make non-matching cards transparent
 
-        grid.appendChild(card);
+        grid.appendChild(card); // Re-append to grid in sorted order
       });
     });
 
