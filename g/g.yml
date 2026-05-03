@@ -3,3 +3,9 @@ games:
     key: 273
     prefix: i
     credit: gn-math
+  
+  - name: Doki Doki Literature Club
+    repo: fkrbt/web-port
+    prefix: i
+    credit: gn-math
+
