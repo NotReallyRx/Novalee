@@ -64,11 +64,13 @@ coverLink.appendChild(coverDiv);
 const searchBar = document.getElementById('search-bar');
 
 searchBar.addEventListener('input', (e) => {
-  const query = e.target.value.toLowerCase();
+  const query = e.target.value.toLowerCase().trim();
 
   document.querySelectorAll('.game-card').forEach(card => {
-    const name = card.querySelector('.card-name')?.textContent.toLowerCase() || '';
+    const data = card.dataset.search || '';
 
-    card.style.display = name.includes(query) ? '' : 'none';
+    const matches = data.includes(query);
+
+    card.style.display = matches ? '' : 'none';
   });
 });
