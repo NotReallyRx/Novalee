@@ -61,3 +61,14 @@ coverLink.appendChild(coverDiv);
       grid.appendChild(card);
     });
   });
+const searchBar = document.getElementById('search-bar');
+
+searchBar.addEventListener('input', (e) => {
+  const query = e.target.value.toLowerCase();
+
+  document.querySelectorAll('.game-card').forEach(card => {
+    const name = card.querySelector('.card-name')?.textContent.toLowerCase() || '';
+
+    card.style.display = name.includes(query) ? '' : 'none';
+  });
+});
