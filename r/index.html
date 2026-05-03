@@ -64,29 +64,5 @@
   </div>
 
 </div>
-
-<script>
-  const params = new URLSearchParams(window.location.search);
-  // supports ?=name (first value) or ?name=name
-  const who = params.get('') || [...params.values()][0] || null;
-
-  const container = document.getElementById('content');
-
-  if (who) {
-    const match = CREDITS.find(c => c.name.toLowerCase() === who.toLowerCase());
-    if (match) {
-      container.innerHTML = `
-        <div id="credit-name">${match.name}</div>
-        <a id="credit-link" href="${match.link}" target="_blank" rel="noopener">${match.link.replace('https://', '')}</a>
-        <a class="tb-btn active" id="visit-btn" href="${match.link}" target="_blank" rel="noopener">Visit</a>
-      `;
-    } else {
-      container.innerHTML = `<div id="not-found">${who} not found</div>`;
-    }
-  } else {
-    container.innerHTML = `<div id="not-found">No credit specified</div>`;
-  }
-</script>
-
-</body>
-</html>
+<script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
+<script src="/r/r.js"></script>
