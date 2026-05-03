@@ -3,6 +3,33 @@ const grid = document.getElementById('grid');
 const SEARCH_THRESHOLD = 0.38;
 
 /* =========================
+   HELPERS
+========================= */
+function joinPath(dir, file) {
+  if (!dir) return file;
+  return dir.replace(/\/+$/, '') + '/' + file.replace(/^\/+/, '');
+}
+
+function getKey(final) {
+  if (final.key) return final.key;
+
+  // fallback: use file name if possible
+  if (final.file) {
+    return final.file
+      .split('/')
+      .pop()
+      .replace(/\.[^/.]+$/, '')
+      .toLowerCase();
+  }
+
+  // fallback: use name
+  return final.name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+/* =========================
    LEVENSHTEIN
 ========================= */
 function levenshtein(a, b) {
@@ -86,18 +113,18 @@ fetch('/g/g.yml')
          MERGE PROVIDER + GAME
       ========================= */
       const provider = providers[game.provider] || {};
+      const final = { ...provider, ...game };
 
-      const final = {
-        ...provider,
-        ...game // game overrides provider
-      };
+      const key = getKey(final);
 
       /* =========================
          BUILD HREF
       ========================= */
+      const filePath = joinPath(final.dir, final.file);
+
       const href = final.prefix === 'gh'
         ? `/i/?gh=${final.repo}`
-          + `&f=${encodeURIComponent((final.dir || '') + final.file)}`
+          + `&f=${encodeURIComponent(filePath)}`
           + `&tag=${encodeURIComponent(final.tag || 'main')}`
           + `&cdn=${encodeURIComponent(final.cdn || 'jsdelivr')}`
         : `/i/?${final.prefix}=${final.key}`;
@@ -105,22 +132,48 @@ fetch('/g/g.yml')
       /* =========================
          COVER RESOLUTION
       ========================= */
-      let iconSrc = final.cover;
+      let iconSrc = null;
 
-      if (!iconSrc) {
+      if (final.cover) {
+
+        // FULL URL
+        if (/^https?:\/\//i.test(final.cover)) {
+          iconSrc = final.cover;
+        }
+
+        // HAS EXTENSION (273.jpg)
+        else if (/\.[a-z0-9]+$/i.test(final.cover)) {
+          const coverPath = joinPath(final.cover_dir, final.cover);
+
+          iconSrc = `https://cdn.jsdelivr.net/gh/${final.cover_repo}@${final.tag || 'main'}/${coverPath}`;
+        }
+
+        // NO EXTENSION (273)
+        else {
+          const coverPath = joinPath(
+            final.cover_dir,
+            final.cover + '.' + (final.cover_ext || 'png')
+          );
+
+          iconSrc = `https://cdn.jsdelivr.net/gh/${final.cover_repo}@${final.tag || 'main'}/${coverPath}`;
+        }
+
+      } else {
+
+        // AUTO FALLBACK
         if (final.cover_repo) {
-          const coverPath =
-            (final.cover_dir || '') +
-            (final.key || final.name.toLowerCase().replace(/\s+/g, '-')) +
-            '.' + (final.cover_ext || 'png');
+          const coverPath = joinPath(
+            final.cover_dir,
+            key + '.' + (final.cover_ext || 'png')
+          );
 
           iconSrc = `https://cdn.jsdelivr.net/gh/${final.cover_repo}@${final.tag || 'main'}/${coverPath}`;
         }
         else if (final.prefix === 'gh') {
-          iconSrc = `${CDN_COVERS}/${final.key}.png`;
+          iconSrc = `${CDN_COVERS}/${key}.png`;
         }
         else {
-          iconSrc = `/icons/${final.key}.png`;
+          iconSrc = `/icons/${key}.png`;
         }
       }
 
