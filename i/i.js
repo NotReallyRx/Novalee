@@ -63,8 +63,18 @@ async function loadGame(src, cdn) {
       const res  = await fetch(src);
       const html = await res.text();
 
+      // build base path from file
+      const baseUrl = src.split('/').slice(0, -1).join('/') + '/';
+
+      // inject <base> into <head>
+      const patchedHtml = html.replace(
+      /<head([^>]*)>/i,
+      `<head$1><base href="${baseUrl}">`
+
+      );
+
       iframe.removeAttribute('src');
-      iframe.srcdoc = html;
+      iframe.srcdoc = patchedHtml;
       iframe.addEventListener('load', finishLoad, { once: true });
 
     } catch (e) {
