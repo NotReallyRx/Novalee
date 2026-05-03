@@ -3,165 +3,188 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>g.yml Entry Builder</title>
+<title>g.yml Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@500;700&display=swap" rel="stylesheet" />
+
 <style>
 :root {
   --bg:#0a0a0a;
   --surface:#111;
   --border:#1e1e1e;
   --text:#d8d8d8;
-  --muted:#666;
+  --muted:#555;
 }
 
-*{box-sizing:border-box;margin:0;padding:0}
-
-body{
+body {
+  margin:0;
+  font-family:'DM Mono', monospace;
   background:var(--bg);
   color:var(--text);
-  font-family:monospace;
-  height:100vh;
   display:flex;
-  justify-content:center;
-  align-items:center;
+  height:100vh;
 }
 
-#app{
-  width:700px;
-  background:var(--surface);
+#left, #right {
+  flex:1;
+  padding:16px;
+  overflow:auto;
+}
+
+h2 {
+  font-family:'Syne', sans-serif;
+  font-size:.8rem;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+
+.section {
   border:1px solid var(--border);
-  border-radius:10px;
-  padding:20px;
+  border-radius:8px;
+  padding:12px;
+  margin-bottom:12px;
+  background:var(--surface);
 }
 
-h1{font-size:14px;margin-bottom:10px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase}
-
-label{display:block;margin-top:10px;font-size:12px;color:var(--muted)}
-
-input{
+input {
   width:100%;
-  padding:8px;
-  margin-top:4px;
+  margin:4px 0;
+  padding:6px;
   background:#000;
   border:1px solid var(--border);
   color:var(--text);
-  outline:none;
 }
 
-button{
-  margin-top:15px;
-  width:100%;
-  padding:10px;
-  background:#181818;
+button {
+  margin-top:6px;
+  padding:6px 10px;
+  background:#000;
   border:1px solid var(--border);
   color:var(--text);
   cursor:pointer;
 }
 
-button:hover{border-color:#333}
-
-#output{
-  white-space:pre-wrap;
-  background:#000;
-  padding:12px;
-  border:1px solid var(--border);
-  margin-top:15px;
-  display:none;
-}
-
-.back{
-  margin-top:10px;
-  background:#111;
+#output {
+  white-space:pre;
+  font-size:12px;
 }
 </style>
 </head>
 <body>
 
-<div id="app">
+<div id="left">
 
-<div id="formView">
-  <h1>g.yml ENTRY BUILDER</h1>
+<h2>Providers</h2>
+<div id="providers"></div>
+<button onclick="addProvider()">+ Add Provider</button>
 
-  <label>Name</label>
-  <input id="name" />
+<h2>Games</h2>
+<div id="games"></div>
+<button onclick="addGame()">+ Add Game</button>
 
-  <label>Repo</label>
-  <input id="repo" />
+<button onclick="generate()">Generate g.yml</button>
 
-  <label>File</label>
-  <input id="file" />
-
-  <label>Prefix (gh/i)</label>
-  <input id="prefix" value="gh" />
-
-  <label>Tag</label>
-  <input id="tag" value="main" />
-
-  <label>CDN (jsdelivr/raw/githack)</label>
-  <input id="cdn" value="jsdelivr" />
-
-  <label>Credit</label>
-  <input id="credit" />
-
-  <label>Cover URL</label>
-  <input id="cover" />
-
-  <label>Search tags (comma separated)</label>
-  <input id="search" />
-
-  <button onclick="generate()">Generate g.yml Entry</button>
 </div>
 
+<div id="right">
+<h2>Output</h2>
 <pre id="output"></pre>
-<button class="back" onclick="back()" style="display:none">Back</button>
-
 </div>
 
 <script>
-const formView = document.getElementById('formView');
-const output = document.getElementById('output');
+let providers = [];
+let games = [];
 
-function val(id){
-  return (document.getElementById(id)?.value || '').trim();
+function addProvider() {
+  const p = {
+    name:'', repo:'', dir:'', prefix:'gh', tag:'main', credit:'', cdn:'jsdelivr',
+    cover_repo:'', cover_dir:'', cover_ext:'png'
+  };
+  providers.push(p);
+  render();
 }
 
-function generate(){
-  const data = {
-    name: val('name'),
-    repo: val('repo'),
-    file: val('file'),
-    prefix: val('prefix'),
-    tag: val('tag'),
-    cdn: val('cdn'),
-    credit: val('credit'),
-    cover: val('cover'),
-    search: val('search').split(',').map(x=>x.trim()).filter(Boolean)
+function addGame() {
+  const g = {
+    name:'', provider:'', repo:'', file:'', prefix:'gh', tag:'main', credit:'', cdn:'jsdelivr', cover:''
   };
+  games.push(g);
+  render();
+}
 
-  let yaml = `- name: ${data.name || ''}\n` +
-             `  repo: ${data.repo || ''}\n` +
-             `  file: ${data.file || ''}\n` +
-             `  prefix: ${data.prefix || ''}\n` +
-             `  tag: ${data.tag || ''}\n` +
-             `  cdn: ${data.cdn || ''}\n` +
-             `  credit: ${data.credit || ''}\n` +
-             `  cover: ${data.cover || ''}\n` +
-             `  search:`;
+function render() {
+  const pDiv = document.getElementById('providers');
+  const gDiv = document.getElementById('games');
 
-  (data.search || []).forEach(s => {
-    yaml += `\n    - ${s}`;
+  pDiv.innerHTML = '';
+  gDiv.innerHTML = '';
+
+  providers.forEach((p,i)=>{
+    pDiv.innerHTML += `
+    <div class="section">
+      <input placeholder="name" value="${p.name}" oninput="providers[${i}].name=this.value">
+      <input placeholder="repo" value="${p.repo}" oninput="providers[${i}].repo=this.value">
+      <input placeholder="dir" value="${p.dir}" oninput="providers[${i}].dir=this.value">
+      <input placeholder="credit" value="${p.credit}" oninput="providers[${i}].credit=this.value">
+      <input placeholder="cover_repo" value="${p.cover_repo}" oninput="providers[${i}].cover_repo=this.value">
+      <input placeholder="cover_dir" value="${p.cover_dir}" oninput="providers[${i}].cover_dir=this.value">
+      <input placeholder="cover_ext" value="${p.cover_ext}" oninput="providers[${i}].cover_ext=this.value">
+    </div>`;
   });
 
-  formView.style.display = 'none';
-  output.style.display = 'block';
-  output.textContent = yaml;
-  document.querySelector('.back').style.display = 'block';
+  games.forEach((g,i)=>{
+    gDiv.innerHTML += `
+    <div class="section">
+      <input placeholder="name" value="${g.name}" oninput="games[${i}].name=this.value">
+      <input placeholder="provider" value="${g.provider}" oninput="games[${i}].provider=this.value">
+      <input placeholder="repo override" value="${g.repo}" oninput="games[${i}].repo=this.value">
+      <input placeholder="file" value="${g.file}" oninput="games[${i}].file=this.value">
+      <input placeholder="credit override" value="${g.credit}" oninput="games[${i}].credit=this.value">
+      <input placeholder="cover (optional)" value="${g.cover}" oninput="games[${i}].cover=this.value">
+    </div>`;
+  });
 }
 
-function back(){
-  formView.style.display = 'block';
-  output.style.display = 'none';
-  document.querySelector('.back').style.display = 'none';
+function generate() {
+  let out = 'providers:\n';
+
+  providers.forEach(p=>{
+    if(!p.name) return;
+    out += `  - name: ${p.name}\n`;
+    out += `    repo: ${p.repo}\n`;
+    out += `    dir: ${p.dir || ''}\n`;
+    out += `    prefix: ${p.prefix}\n`;
+    out += `    tag: ${p.tag}\n`;
+    out += `    credit: ${p.credit}\n`;
+    out += `    cdn: ${p.cdn}\n`;
+
+    if(p.cover_repo) out += `    cover_repo: ${p.cover_repo}\n`;
+    if(p.cover_dir) out += `    cover_dir: ${p.cover_dir}\n`;
+    if(p.cover_ext) out += `    cover_ext: ${p.cover_ext}\n`;
+  });
+
+  out += '\n\ngames:\n';
+
+  games.forEach(g=>{
+    if(!g.name) return;
+
+    out += `  - name: ${g.name}\n`;
+
+    if(g.provider) out += `    provider: ${g.provider}\n`;
+    if(g.repo) out += `    repo: ${g.repo}\n`;
+
+    out += `    file: ${g.file}\n`;
+
+    if(g.credit) out += `    credit: ${g.credit}\n`;
+    if(g.cover) out += `    cover: ${g.cover}\n`;
+  });
+
+  document.getElementById('output').textContent = out;
 }
+
+// init
+addProvider();
+addGame();
 </script>
 
 </body>
