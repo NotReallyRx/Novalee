@@ -90,7 +90,17 @@ async function loadGame(src, cdn) {
           /<head([^>]*)>/i,
           `<head$1><base href="${baseUrl}">`
         );
-      } else {
+      } 
+      // 🔥 SW CONTROL HERE
+    if (!sw) {
+      // remove any service worker registration
+      html = html.replace(
+        /navigator\.serviceWorker\.register\([^)]+\);?/g,
+        '// service worker disabled'
+      );
+    }
+      
+      else {
         // fallback: prepend if no <head>
         html = `<base href="${baseUrl}">` + html;
       }
