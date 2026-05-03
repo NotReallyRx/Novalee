@@ -9,7 +9,7 @@ function resolveCdn(cdn, repo, tag, file) {
       return `https://raw.githack.com/${repo}/${tag}/${file}`;
 
     case 'raw':
-      return `https://raw.githubusercontent.com/${repo}/${tag}/${file}`;
+      return `https://raw.githubusercontent.com/${repo}/refs/heads/${tag}/${file}`;
 
     case 'jsdelivr':
     default:
