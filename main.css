@@ -196,3 +196,23 @@ html, body {
 :-webkit-full-screen #toolbar  { display: none !important; }
 :-webkit-full-screen #main     { padding: 0; gap: 0; }
 :-webkit-full-screen #controls { display: none; }
+.card-cover {
+  background: var(--dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+/* fallback when image fails or missing */
+.card-cover.no-image {
+  background: linear-gradient(135deg, var(--dim), rgba(255,255,255,0.05));
+}
+
+/* optional subtle placeholder */
+.card-cover.no-image::after {
+  content: "🎮";
+  font-size: 2rem;
+  opacity: 0.4;
+}
