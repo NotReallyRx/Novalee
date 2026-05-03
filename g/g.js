@@ -30,7 +30,15 @@ fetch('/g/g.yml')
       coverLink.href = href;
       coverLink.innerHTML = `
         <div class="card-cover">
-          <img src="${iconSrc}" alt="" onerror="this.parentElement.style.background='var(--dim)';this.remove();" />
+          const img = document.createElement('img');
+            img.src = iconSrc;
+            img.alt = '';
+
+            img.onerror = () => {
+              img.remove();
+
+            coverLink.querySelector('.card-cover').classList.add('no-image');
+        };
         </div>
       `;
 
