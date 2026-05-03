@@ -26,7 +26,7 @@
 
     #grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
       gap: 6px;
     }
 
@@ -34,64 +34,63 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 0;
-      cursor: pointer;
+      overflow: hidden;
       text-decoration: none;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
-      transition: all .15s;
+      transition: border-color .15s;
     }
 
-    .game-card:hover {
-      background: var(--raised);
-      border-color: var(--border-hi);
-    }
+    .game-card:hover { border-color: var(--border-hi); }
+    .game-card:hover .card-cover { filter: brightness(1.08); }
 
-    .game-card:active {
-      background: var(--dim);
-    }
-
-    .card-icon {
+    .card-cover {
       width: 100%;
-      aspect-ratio: 16/9;
-      background: var(--raised);
+      aspect-ratio: 3/2;
+      background: var(--dim);
       overflow: hidden;
       flex-shrink: 0;
+      transition: filter .15s;
     }
 
-    .card-icon img {
+    .card-cover img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
     }
 
-    .card-icon.no-img {
-      background: var(--dim);
-    }
-
-    .card-body {
-      padding: 10px 12px 12px;
+    .card-footer {
+      padding: 8px 10px;
       display: flex;
-      flex-direction: column;
-      gap: 4px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
     }
 
     .card-name {
       font-family: 'Syne', sans-serif;
-      font-size: .78rem;
+      font-size: .76rem;
       font-weight: 500;
       color: var(--text);
-      letter-spacing: .03em;
+      letter-spacing: .02em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .card-path {
+    .card-credit {
       font-family: 'DM Mono', monospace;
       font-size: .58rem;
       color: var(--muted);
-      letter-spacing: .05em;
+      letter-spacing: .04em;
+      white-space: nowrap;
+      flex-shrink: 0;
+      text-decoration: none;
+      transition: color .15s;
     }
+
+    .card-credit:hover { color: var(--text); }
   </style>
 </head>
 <body>
@@ -114,45 +113,56 @@
 
 <script>
   const GAMES = [
-    { name: 'Slope',       key: 'slope',       prefix: 'g' },
-    { name: 'Run 3',       key: 'run3',        prefix: 'g' },
-    { name: 'Drift Boss',  key: 'drift-boss',  prefix: 'g' },
-    { name: 'Tunnel Rush', key: 'tunnel-rush', prefix: 'g' },
-    { name: 'Snake',       key: 'snake',       prefix: 'a' },
-    { name: 'Tetris',      key: 'tetris',      prefix: 'a' },
-    { name: 'Pac-Man',     key: 'pacman',      prefix: 'a' },
-    { name: '2048',        key: '2048',        prefix: 'a' },
-    { name: 'Chess',       key: 'chess',       prefix: 'p' },
-    { name: 'Minecraft',   key: 'minecraft',   prefix: 'p' },
-    { name: '273',         key: '273',         prefix: 'i' },
+    { name: 'Slope',       key: 'slope',       prefix: 'g', credit: 'truffled' },
+    { name: 'Run 3',       key: 'run3',        prefix: 'g', credit: 'truffled' },
+    { name: 'Drift Boss',  key: 'drift-boss',  prefix: 'g', credit: 'truffled' },
+    { name: 'Tunnel Rush', key: 'tunnel-rush', prefix: 'g', credit: 'truffled' },
+    { name: 'Snake',       key: 'snake',       prefix: 'a', credit: 'truffled' },
+    { name: 'Tetris',      key: 'tetris',      prefix: 'a', credit: 'truffled' },
+    { name: 'Pac-Man',     key: 'pacman',      prefix: 'a', credit: 'truffled' },
+    { name: '2048',        key: '2048',        prefix: 'a', credit: 'truffled' },
+    { name: 'Chess',       key: 'chess',       prefix: 'p', credit: 'truffled' },
+    { name: 'Minecraft',   key: 'minecraft',   prefix: 'p', credit: 'truffled' },
+    { name: '273',         key: '273',         prefix: 'i', credit: 'freebuisness' },
   ];
 
-  const CDN_HTML    = 'https://cdn.jsdelivr.net/gh/freebuisness/html@main';
-  const CDN_COVERS  = 'https://cdn.jsdelivr.net/gh/freebuisness/covers@main';
+  const CDN_COVERS = 'https://cdn.jsdelivr.net/gh/freebuisness/covers@main';
 
   const grid = document.getElementById('grid');
 
   GAMES.forEach(game => {
-    const src  = game.prefix === 'i' ? `${CDN_HTML}/${game.key}.html` : `/${game.prefix}/${game.key}`;
-    const href = `/i.html?${game.prefix}=${game.key}`;
-
-    const iconSrc = game.prefix === 'i'
+    const href     = `/i.html?${game.prefix}=${game.key}`;
+    const iconSrc  = game.prefix === 'i'
       ? `${CDN_COVERS}/${game.key}.png`
       : `/icons/${game.key}.png`;
 
-    const a = document.createElement('a');
-    a.className = 'game-card';
-    a.href = href;
-    a.innerHTML = `
-      <div class="card-icon">
-        <img src="${iconSrc}" alt="" onerror="this.parentElement.classList.add('no-img');this.remove();" />
-      </div>
-      <div class="card-body">
-        <div class="card-name">${game.name}</div>
-        <div class="card-path">${src.replace('https://', '')}</div>
+    const card = document.createElement('div');
+    card.className = 'game-card';
+
+    const coverLink = document.createElement('a');
+    coverLink.href = href;
+    coverLink.innerHTML = `
+      <div class="card-cover">
+        <img src="${iconSrc}" alt="" onerror="this.parentElement.style.background='var(--dim)';this.remove();" />
       </div>
     `;
-    grid.appendChild(a);
+
+    const footer = document.createElement('div');
+    footer.className = 'card-footer';
+    footer.innerHTML = `<span class="card-name">${game.name}</span>`;
+
+    if (game.credit) {
+      const credit = document.createElement('a');
+      credit.className = 'card-credit';
+      credit.textContent = game.credit;
+      credit.href = `/r.html?=${game.credit}`;
+      credit.addEventListener('click', e => e.stopPropagation());
+      footer.appendChild(credit);
+    }
+
+    card.appendChild(coverLink);
+    card.appendChild(footer);
+    grid.appendChild(card);
   });
 </script>
 

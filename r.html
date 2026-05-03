@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Credit — Novalee</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="main.css" />
+  <style>
+    #center {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px;
+    }
+
+    #credit-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: .02em;
+    }
+
+    #credit-link {
+      font-family: 'DM Mono', monospace;
+      font-size: .7rem;
+      color: var(--muted);
+      letter-spacing: .08em;
+      text-decoration: none;
+      transition: color .15s;
+    }
+
+    #credit-link:hover { color: var(--text); }
+
+    #visit-btn {
+      margin-top: 16px;
+    }
+
+    #not-found {
+      font-family: 'DM Mono', monospace;
+      font-size: .75rem;
+      color: var(--muted);
+      letter-spacing: .1em;
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+
+  <div id="center" id="center">
+    <div id="content"></div>
+  </div>
+
+  <div id="toolbar">
+    <a class="tb-btn" href="/">Home</a>
+    <a class="tb-btn" href="/g.html">Games</a>
+    <span id="tb-label"></span>
+    <a class="tb-btn" href="/s.html">Settings</a>
+  </div>
+
+</div>
+
+<script>
+  // Mirrors r.yml — update both together
+  const CREDITS = [
+    { name: 'truffled',     link: 'https://truffled.net' },
+    { name: 'freebuisness', link: 'https://github.com/freebuisness' },
+  ];
+
+  const params = new URLSearchParams(window.location.search);
+  // supports ?=name (first value) or ?name=name
+  const who = params.get('') || [...params.values()][0] || null;
+
+  const container = document.getElementById('content');
+
+  if (who) {
+    const match = CREDITS.find(c => c.name.toLowerCase() === who.toLowerCase());
+    if (match) {
+      container.innerHTML = `
+        <div id="credit-name">${match.name}</div>
+        <a id="credit-link" href="${match.link}" target="_blank" rel="noopener">${match.link.replace('https://', '')}</a>
+        <a class="tb-btn active" id="visit-btn" href="${match.link}" target="_blank" rel="noopener">Visit</a>
+      `;
+    } else {
+      container.innerHTML = `<div id="not-found">${who} not found</div>`;
+    }
+  } else {
+    container.innerHTML = `<div id="not-found">No credit specified</div>`;
+  }
+</script>
+
+</body>
+</html>
