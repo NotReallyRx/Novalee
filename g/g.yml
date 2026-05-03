@@ -6,4 +6,4 @@ games:
     prefix: gh
     tag: main
     credit: gn-math
-    cdn: raw
+    cdn: jsdelivr
