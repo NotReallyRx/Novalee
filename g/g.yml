@@ -12,7 +12,7 @@ providers:
     cover_ext: png
   
   - name: C09
-    repo: SoupcanUBG/g
+    repo: SoupcanUBG/C09
     dir: g
     prefix: gh
     tag: main
