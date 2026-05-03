@@ -13,17 +13,15 @@
 
   <div id="main">
 
-    <!-- iframe frame -->
     <div id="frame-outer">
       <div id="load-bar"></div>
       <iframe
         id="game-iframe"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock"
         allowfullscreen
       ></iframe>
     </div>
 
-    <!-- controls: fullscreen + reload in one rounded container -->
     <div id="controls">
       <button class="ctrl-btn" data-tip="Fullscreen" onclick="toggleFullscreen()">
         <svg viewBox="0 0 24 24">
@@ -50,10 +48,9 @@
 
   </div>
 
-  <!-- toolbar: plain nav links, no panels -->
   <div id="toolbar">
     <a class="tb-btn" href="/">Home</a>
-    <a class="tb-btn" href="/games">Games</a>
+    <a class="tb-btn" href="/g.html">Games</a>
     <span id="tb-label"></span>
     <a class="tb-btn" href="/s.html">Settings</a>
   </div>
@@ -65,31 +62,20 @@
   const loadBar = document.getElementById('load-bar');
   const label   = document.getElementById('tb-label');
 
-  // Parse query string — first param wins
-  // ?g=slope  →  src=/g/slope,  label="slope"
-  // ?a=snake  →  src=/a/snake,  label="snake"
-  const params = new URLSearchParams(window.location.search);
-  let currentSrc = null;
-  let currentKey = null;
+  const CDN_HTML = 'https://cdn.jsdelivr.net/gh/freebuisness/html@main';
 
   const params = new URLSearchParams(window.location.search);
   let currentSrc = null;
   let currentKey = null;
   let isCdn = false;
 
-  const urlOverride = params.get('url');
-
   for (const [prefix, key] of params.entries()) {
-    if (prefix === 'url') continue;
     isCdn = prefix === 'i';
-    currentSrc = isCdn
-      ? `https://cdn.jsdelivr.net/gh/freebuisness/html@main/${key}.html`
-      : (urlOverride ? urlOverride : `/${prefix}/${key}`);
+    currentSrc = isCdn ? `${CDN_HTML}/${key}.html` : `/${prefix}/${key}`;
     currentKey = key;
     break;
   }
 
-  // No query param — fall back to last saved game
   if (!currentSrc) {
     try {
       const saved = JSON.parse(sessionStorage.getItem('last'));
@@ -108,15 +94,18 @@
     startLoad();
     if (cdn) {
       try {
-        const res  = await fetch(src, { mode: 'cors' });
+        const res  = await fetch(src);
         const html = await res.text();
+        // srcdoc with allow-scripts renders the fetched HTML fully
+        iframe.removeAttribute('src');
         iframe.srcdoc = html;
         iframe.addEventListener('load', finishLoad, { once: true });
       } catch (e) {
-        console.error('CDN fetch failed:', e);
+        console.error('Fetch failed:', e);
         finishLoad();
       }
     } else {
+      iframe.removeAttribute('srcdoc');
       iframe.src = src;
       iframe.addEventListener('load', finishLoad, { once: true });
     }
@@ -156,7 +145,7 @@
   }
 
   document.addEventListener('keydown', e => {
-    if (e.key === 'F11')             { e.preventDefault(); toggleFullscreen(); }
+    if (e.key === 'F11')            { e.preventDefault(); toggleFullscreen(); }
     if (e.ctrlKey && e.key === 'r') { e.preventDefault(); reloadFrame(); }
   });
 </script>
