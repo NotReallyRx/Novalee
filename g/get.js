@@ -1,7 +1,7 @@
 const CDN_COVERS = 'https://cdn.jsdelivr.net/gh/freebuisness/covers@main';
 const grid = document.getElementById('grid');
 
-fetch('/games.yml')
+fetch('/g/g.yml')
   .then(res => res.text())
   .then(text => {
     const yamlData = jsyaml.load(text);
@@ -9,7 +9,7 @@ fetch('/games.yml')
     const games = yamlData.games;
 
     games.forEach(game => {
-      const href = `/i.html?${game.prefix}=${game.key}`;
+      const href = `/i/?${game.prefix}=${game.key}`;
 
       const iconSrc = game.prefix === 'i'
         ? `${CDN_COVERS}/${game.key}.png`
@@ -34,7 +34,7 @@ fetch('/games.yml')
         const credit = document.createElement('a');
         credit.className = 'card-credit';
         credit.textContent = game.credit;
-        credit.href = `/r.html?=${game.credit}`;
+        credit.href = `/r/?=${game.credit}`;
         credit.addEventListener('click', e => e.stopPropagation());
         footer.appendChild(credit);
       }
