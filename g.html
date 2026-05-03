@@ -124,19 +124,22 @@
     { name: '2048',        key: '2048',        prefix: 'a' },
     { name: 'Chess',       key: 'chess',       prefix: 'p' },
     { name: 'Minecraft',   key: 'minecraft',   prefix: 'p' },
-    { name: '273',         key: '273',         prefix: 'i', url: 'https://cdn.jsdelivr.net/gh/freebuisness/html@main/273.html' },
+    { name: '273',         key: '273',         prefix: 'i' },
   ];
+
+  const CDN_HTML    = 'https://cdn.jsdelivr.net/gh/freebuisness/html@main';
+  const CDN_COVERS  = 'https://cdn.jsdelivr.net/gh/freebuisness/covers@main';
 
   const grid = document.getElementById('grid');
 
   GAMES.forEach(game => {
-    // Build the viewer href — pass url as encoded param if override exists
-    const href = game.url
-      ? `/I.html?${game.prefix}=${game.key}&url=${encodeURIComponent(game.url)}`
+    const src  = game.prefix === 'i' ? `${CDN_HTML}/${game.key}.html` : `/${game.prefix}/${game.key}`;
+    const href = game.prefix === 'i'
+      ? `/I.html?${game.prefix}=${game.key}&url=${encodeURIComponent(src)}`
       : `/I.html?${game.prefix}=${game.key}`;
 
     const iconSrc = game.prefix === 'i'
-      ? `https://cdn.jsdelivr.net/gh/freebuisness/covers@main/${game.key}.png`
+      ? `${CDN_COVERS}/${game.key}.png`
       : `/icons/${game.key}.png`;
 
     const a = document.createElement('a');
@@ -148,7 +151,7 @@
       </div>
       <div class="card-body">
         <div class="card-name">${game.name}</div>
-        <div class="card-path">${game.url ? game.url.replace('https://', '') : `/${game.prefix}/${game.key}`}</div>
+        <div class="card-path">${src.replace('https://', '')}</div>
       </div>
     `;
     grid.appendChild(a);
