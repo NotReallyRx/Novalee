@@ -14,9 +14,11 @@ fetch('/g/g.yml')
         ? `/i.html?gh=${game.repo}&i=${game.key}`
         : `/i.html?${game.prefix}=${game.key}`;
 
-      const iconSrc = game.prefix === 'i'
-        ? `${CDN_COVERS}/${game.key}.png`
-        : `/icons/${game.key}.png`;
+      const iconSrc = game.cover
+        ? game.cover
+        : (game.prefix === 'i' || game.prefix === 'gh')
+           ? `${CDN_COVERS}/${game.key}.png`
+           : `/icons/${game.key}.png`;
 
       const card = document.createElement('div');
       card.className = 'game-card';
