@@ -3,6 +3,7 @@ const loadBar = document.getElementById('load-bar');
 const label   = document.getElementById('tb-label');
 
 const CDN_HTML = 'https://cdn.jsdelivr.net/gh/freebuisness/html@main';
+const PROXY = 'https://novalee.rxk.workers.dev/?url=';
 
 /* =========================
    CDN RESOLVER
@@ -19,12 +20,6 @@ function resolveCdn(cdn, repo, tag, file) {
   }
 }
 
-/* =========================
-   PROXY (OPTIONAL BUT RECOMMENDED)
-========================= */
-// Replace this with your worker if you want full fix
-const PROXY = 'https://novalee.rxk.workers.dev/?url=';
-
 function useProxy(url) {
   return PROXY + encodeURIComponent(url);
 }
@@ -33,37 +28,26 @@ const params = new URLSearchParams(window.location.search);
 
 let currentSrc = null;
 let currentKey = null;
-let isCdn = false;
-
-const gh   = params.get('gh');
-const file = params.get('f');
-const tag  = params.get('tag') || 'main';
-const cdn  = params.get('cdn') || 'jsdelivr';
-const sw   = params.get('sw') === '1';
 
 /* =========================
    SOURCE RESOLVE
 ========================= */
+const gh   = params.get('gh');
+const file = params.get('f');
+const tag  = params.get('tag') || 'main';
+const cdn  = params.get('cdn') || 'jsdelivr';
+
 if (gh && file) {
-  isCdn = true;
-
   const raw = resolveCdn(cdn, gh, tag, file);
-
-  // 🔥 IMPORTANT: ALWAYS proxy CDN content
   currentSrc = useProxy(raw);
-
   currentKey = file.split('/').pop().replace('.html', '');
-
 } else {
   for (const [prefix, key] of params.entries()) {
-    isCdn = prefix === 'i';
-
-    const raw = isCdn
+    const raw = prefix === 'i'
       ? `${CDN_HTML}/${key}.html`
       : `/${prefix}/${key}`;
 
     currentSrc = useProxy(raw);
-
     currentKey = key;
     break;
   }
@@ -78,7 +62,6 @@ if (!currentSrc) {
     if (saved) {
       currentSrc = saved.src;
       currentKey = saved.key;
-      isCdn = saved.isCdn;
     }
   } catch {}
 }
@@ -89,76 +72,66 @@ if (!currentSrc) {
 if (currentSrc) {
   sessionStorage.setItem('last', JSON.stringify({
     src: currentSrc,
-    key: currentKey,
-    isCdn
+    key: currentKey
   }));
 
   history.replaceState(null, '', window.location.pathname);
 
   label.textContent = currentKey.replace(/-/g, ' ');
+
+  applyMeta(currentSrc);
   loadGame(currentSrc);
 }
 
-async function loadGame(src) {
+/* =========================
+   LOAD INTO IFRAME (REAL URL)
+========================= */
+function loadGame(src) {
   startLoad();
 
+  iframe.removeAttribute('srcdoc');
+  iframe.src = src;
+
+  iframe.addEventListener('load', finishLoad, { once: true });
+}
+
+/* =========================
+   TITLE + ICON EXTRACTION
+========================= */
+async function applyMeta(proxyUrl) {
   try {
-    const res = await fetch(src);
-    let html = await res.text();
+    const res = await fetch(proxyUrl);
+    const html = await res.text();
 
-    const baseUrl = src.substring(0, src.lastIndexOf('/') + 1);
-
-    /* =========================
-       🔥 HARD BLOCK SERVICE WORKERS
-       (must run BEFORE page executes)
-    ========================= */
-    const swBlock = `
-<script>
-(() => {
-  try {
-    navigator.serviceWorker = undefined;
-  } catch(e) {}
-
-  Object.defineProperty(navigator, 'serviceWorker', {
-    value: undefined,
-    configurable: false
-  });
-})();
-</script>`;
-
-    /* =========================
-       BASE TAG FIX
-    ========================= */
-    if (!/<base\s/i.test(html)) {
-      if (/<head[^>]*>/i.test(html)) {
-        html = html.replace(
-          /<head([^>]*)>/i,
-          `<head$1><base href="${baseUrl}">`
-        );
-      } else {
-        html = `<base href="${baseUrl}">` + html;
-      }
+    // --- TITLE ---
+    const titleMatch = html.match(/<title>(.*?)<\/title>/i);
+    if (titleMatch) {
+      document.title = titleMatch[1];
     }
 
-    /* =========================
-       INJECT SW BLOCK SAFELY
-    ========================= */
-    if (!sw) {
-      if (/<head[^>]*>/i.test(html)) {
-        html = html.replace(/<head([^>]*)>/i, `<head$1>${swBlock}`);
-      } else {
-        html = swBlock + html;
+    // --- ICON ---
+    const iconMatch =
+      html.match(/<link[^>]*rel=["']icon["'][^>]*href=["']([^"']+)["']/i) ||
+      html.match(/<link[^>]*rel=["']apple-touch-icon["'][^>]*href=["']([^"']+)["']/i);
+
+    if (iconMatch) {
+      const baseMatch = html.match(/<base[^>]*href=["']([^"']+)["']/i);
+      const base = baseMatch ? baseMatch[1] : proxyUrl;
+
+      const iconUrl = new URL(iconMatch[1], base).href;
+
+      let link = document.querySelector("link[rel='icon']");
+      if (!link) {
+        link = document.createElement("link");
+        link.rel = "icon";
+        document.head.appendChild(link);
       }
+
+      link.href = iconUrl;
     }
-
-    iframe.removeAttribute('src');
-    iframe.srcdoc = html;
-
-    iframe.addEventListener('load', finishLoad, { once: true });
 
   } catch (e) {
-    console.error('Load failed:', e);
-    finishLoad();
+    console.warn('Meta extraction failed:', e);
   }
 }
 
