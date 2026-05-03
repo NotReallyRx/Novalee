@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Credit — Novalee</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="main.css" />
+  <link rel="stylesheet" href="/main.css" />
   <style>
     #center {
       flex: 1;
@@ -66,12 +66,6 @@
 </div>
 
 <script>
-  // Mirrors r.yml — update both together
-  const CREDITS = [
-    { name: 'truffled',     link: 'https://truffled.net' },
-    { name: 'freebuisness', link: 'https://github.com/freebuisness' },
-  ];
-
   const params = new URLSearchParams(window.location.search);
   // supports ?=name (first value) or ?name=name
   const who = params.get('') || [...params.values()][0] || null;
