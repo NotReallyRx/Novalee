@@ -10,3 +10,14 @@ games:
     cover: https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/DDLC_series_logo.svg/500px-DDLC_series_logo.svg.png
     search:
       - ddlc
+  - name: Class of '09
+    repo: SoupcanUBG/co9
+    file: main/index.html
+    prefix: gh
+    tag: main
+    cdn: githack
+    credit: mysticful
+    cover: https://e.snmc.io/lk/o/x/f32f7845aadd79ec99c22ece60bb2b88/11265542
+    search:
+      - C09
+      - Co9
