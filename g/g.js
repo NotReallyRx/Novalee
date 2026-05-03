@@ -8,8 +8,11 @@ fetch('/g/g.yml')
 
     const games = yamlData.games;
 
+   
     games.forEach(game => {
-      const href = `/i/?${game.prefix}=${game.key}`;
+      const href = game.prefix === 'gh'
+        ? `/i.html?gh=${game.repo}&i=${game.key}`
+        : `/i.html?${game.prefix}=${game.key}`;
 
       const iconSrc = game.prefix === 'i'
         ? `${CDN_COVERS}/${game.key}.png`
