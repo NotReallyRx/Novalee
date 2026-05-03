@@ -8,3 +8,5 @@ games:
     credit: gn-math
     cdn: jsdelivr
     cover: https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/DDLC_series_logo.svg/500px-DDLC_series_logo.svg.png
+    search:
+      - ddlc
