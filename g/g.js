@@ -1,9 +1,9 @@
 const CDN_COVERS = 'https://cdn.jsdelivr.net/gh/freebuisness/covers@main';
 const grid = document.getElementById('grid');
-const SEARCH_THRESHOLD = 0.38; // Adjust this value to make search more strict or lenient
+const SEARCH_THRESHOLD = 0.38;
 
 /* =========================
-   LEVENSHTEIN DISTANCE
+   LEVENSHTEIN
 ========================= */
 function levenshtein(a, b) {
   a = a.toLowerCase();
@@ -31,9 +31,6 @@ function levenshtein(a, b) {
   return matrix[b.length][a.length];
 }
 
-/* =========================
-   LEVENSHTEIN SCORE (0–1)
-========================= */
 function levenshteinScore(query, text) {
   query = query.toLowerCase().trim();
   text = text.toLowerCase().trim();
@@ -47,68 +44,95 @@ function levenshteinScore(query, text) {
   return 1 - dist / maxLen;
 }
 
-/* =========================
-   HYBRID SCORE ENGINE
-========================= */
 function scoreMatch(query, text) {
   query = query.toLowerCase().trim();
   text = text.toLowerCase();
 
   if (!query) return 1;
 
-  const tokens = text.split(/\s+/); // Split by space to compare each token (word)
-
+  const tokens = text.split(/\s+/);
   let bestScore = 0;
 
-  // Compare query against each token in the text (title/search terms)
   for (const token of tokens) {
     const lev = levenshteinScore(query, token);
-
     const exact = token === query ? 1 : 0;
     const includes = token.includes(query) ? 0.9 : 0;
 
-    // Take the best score (exact match, fuzzy match, or contains match)
     const score = Math.max(lev, exact, includes);
-
     if (score > bestScore) bestScore = score;
   }
 
-  return bestScore; // Return the best score for this token
+  return bestScore;
 }
 
 /* =========================
-   LOAD GAME GRID
+   LOAD YAML
 ========================= */
 fetch('/g/g.yml')
   .then(res => res.text())
   .then(text => {
     const yamlData = jsyaml.load(text);
-    const games = yamlData.games;
+
+    const providers = {};
+    (yamlData.providers || []).forEach(p => {
+      providers[p.name] = p;
+    });
+
+    const games = yamlData.games || [];
 
     games.forEach(game => {
-      const href = game.prefix === 'gh'
-        ? `/i/?gh=${game.repo}`
-        + `&f=${encodeURIComponent(game.file)}`
-        + `&tag=${encodeURIComponent(game.tag || 'main')}`
-        + `&cdn=${encodeURIComponent(game.cdn || 'jsdelivr')}`
-        + `&sw=${game.sw ?? 0}`
-        : `/i/?${game.prefix}=${game.key}`;
 
-      const iconSrc = game.cover
-        ? game.cover
-        : (game.prefix === 'i' || game.prefix === 'gh')
-          ? `${CDN_COVERS}/${game.key}.png`
-          : `/icons/${game.key}.png`;
+      /* =========================
+         MERGE PROVIDER + GAME
+      ========================= */
+      const provider = providers[game.provider] || {};
 
+      const final = {
+        ...provider,
+        ...game // game overrides provider
+      };
+
+      /* =========================
+         BUILD HREF
+      ========================= */
+      const href = final.prefix === 'gh'
+        ? `/i/?gh=${final.repo}`
+          + `&f=${encodeURIComponent((final.dir || '') + final.file)}`
+          + `&tag=${encodeURIComponent(final.tag || 'main')}`
+          + `&cdn=${encodeURIComponent(final.cdn || 'jsdelivr')}`
+        : `/i/?${final.prefix}=${final.key}`;
+
+      /* =========================
+         COVER RESOLUTION
+      ========================= */
+      let iconSrc = final.cover;
+
+      if (!iconSrc) {
+        if (final.cover_repo) {
+          const coverPath =
+            (final.cover_dir || '') +
+            (final.key || final.name.toLowerCase().replace(/\s+/g, '-')) +
+            '.' + (final.cover_ext || 'png');
+
+          iconSrc = `https://cdn.jsdelivr.net/gh/${final.cover_repo}@${final.tag || 'main'}/${coverPath}`;
+        }
+        else if (final.prefix === 'gh') {
+          iconSrc = `${CDN_COVERS}/${final.key}.png`;
+        }
+        else {
+          iconSrc = `/icons/${final.key}.png`;
+        }
+      }
+
+      /* =========================
+         CREATE CARD
+      ========================= */
       const card = document.createElement('div');
       card.className = 'game-card';
 
-      /* =========================
-         SEARCH INDEX
-      ========================= */
       card.dataset.search = [
-        game.name,
-        ...(Array.isArray(game.search) ? game.search : [])
+        final.name,
+        ...(Array.isArray(final.search) ? final.search : [])
       ]
         .join(' ')
         .toLowerCase();
@@ -121,7 +145,7 @@ fetch('/g/g.yml')
 
       const img = document.createElement('img');
       img.src = iconSrc;
-      img.alt = game.name || '';
+      img.alt = final.name || '';
 
       img.onerror = () => {
         img.remove();
@@ -133,13 +157,13 @@ fetch('/g/g.yml')
 
       const footer = document.createElement('div');
       footer.className = 'card-footer';
-      footer.innerHTML = `<span class="card-name">${game.name}</span>`;
+      footer.innerHTML = `<span class="card-name">${final.name}</span>`;
 
-      if (game.credit) {
+      if (final.credit) {
         const credit = document.createElement('a');
         credit.className = 'card-credit';
-        credit.textContent = game.credit;
-        credit.href = `/r/?=${game.credit}`;
+        credit.textContent = final.credit;
+        credit.href = `/r/?=${final.credit}`;
         credit.addEventListener('click', e => e.stopPropagation());
         footer.appendChild(credit);
       }
@@ -150,34 +174,32 @@ fetch('/g/g.yml')
     });
 
     /* =========================
-       FUZZY SEARCH ENGINE
+       SEARCH
     ========================= */
     const searchBar = document.getElementById('search-bar');
 
     searchBar.addEventListener('input', (e) => {
-      const query = e.target.value.trim().toLowerCase(); // Capture search input
+      const query = e.target.value.trim().toLowerCase();
 
       const cards = Array.from(document.querySelectorAll('.game-card'));
 
       const ranked = cards.map(card => {
-        const data = card.dataset.search || ''; // Get search data from the card
+        const data = card.dataset.search || '';
         return {
           card,
-          score: scoreMatch(query, data) // Get score for the match
+          score: scoreMatch(query, data)
         };
       });
 
-      // Sort cards by their matching score (descending)
       ranked.sort((a, b) => b.score - a.score);
 
-      // Loop through and display or hide cards based on score and threshold
       ranked.forEach(({ card, score }) => {
-        const visible = score >= SEARCH_THRESHOLD; // Only show if score passes threshold
+        const visible = score >= SEARCH_THRESHOLD;
 
-        card.style.display = visible ? '' : 'none';  // Show or hide based on visibility
-        card.style.opacity = visible ? '1' : '0.25'; // Make non-matching cards transparent
+        card.style.display = visible ? '' : 'none';
+        card.style.opacity = visible ? '1' : '0.25';
 
-        grid.appendChild(card); // Re-append to grid in sorted order
+        grid.appendChild(card);
       });
     });
 
