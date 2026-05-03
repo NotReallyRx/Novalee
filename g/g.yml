@@ -11,8 +11,8 @@ games:
     search:
       - ddlc
   - name: Class of '09
-    repo: fkrbt/web-port
-    file: class-of-09/index.html
+    repo: SoupcanuBG/C09
+    file: g/c.html
     prefix: gh
     tag: main
     cdn: jsdelivr
