@@ -1,44 +1,5 @@
 games:
-  - name: Slope
-    key: slope
-    prefix: g
-
-  - name: Run 3
-    key: run3
-    prefix: g
-
-  - name: Drift Boss
-    key: drift-boss
-    prefix: g
-
-  - name: Tunnel Rush
-    key: tunnel-rush
-    prefix: g
-
-  - name: Snake
-    key: snake
-    prefix: a
-
-  - name: Tetris
-    key: tetris
-    prefix: a
-
-  - name: Pac-Man
-    key: pacman
-    prefix: a
-
-  - name: 2048
-    key: 2048
-    prefix: a
-
-  - name: Chess
-    key: chess
-    prefix: p
-
-  - name: Minecraft
-    key: minecraft
-    prefix: p
-
-  - name: 273
+  - name: Block Post
     key: 273
     prefix: i
+    credit: gn-math
