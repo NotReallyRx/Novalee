@@ -1,1 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>g.yml Entry Builder</title>
+<style>
+:root {
+  --bg:#0a0a0a;
+  --surface:#111;
+  --border:#1e1e1e;
+  --text:#d8d8d8;
+  --muted:#666;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:monospace;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+#app{
+  width:700px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:20px;
+}
+
+h1{font-size:14px;margin-bottom:10px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase}
+
+label{display:block;margin-top:10px;font-size:12px;color:var(--muted)}
+
+input{
+  width:100%;
+  padding:8px;
+  margin-top:4px;
+  background:#000;
+  border:1px solid var(--border);
+  color:var(--text);
+  outline:none;
+}
+
+button{
+  margin-top:15px;
+  width:100%;
+  padding:10px;
+  background:#181818;
+  border:1px solid var(--border);
+  color:var(--text);
+  cursor:pointer;
+}
+
+button:hover{border-color:#333}
+
+#output{
+  white-space:pre-wrap;
+  background:#000;
+  padding:12px;
+  border:1px solid var(--border);
+  margin-top:15px;
+  display:none;
+}
+
+.back{
+  margin-top:10px;
+  background:#111;
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+<div id="formView">
+  <h1>g.yml ENTRY BUILDER</h1>
+
+  <label>Name</label>
+  <input id="name" />
+
+  <label>Repo</label>
+  <input id="repo" />
+
+  <label>File</label>
+  <input id="file" />
+
+  <label>Prefix (gh/i)</label>
+  <input id="prefix" value="gh" />
+
+  <label>Tag</label>
+  <input id="tag" value="main" />
+
+  <label>CDN (jsdelivr/raw/githack)</label>
+  <input id="cdn" value="jsdelivr" />
+
+  <label>Credit</label>
+  <input id="credit" />
+
+  <label>Cover URL</label>
+  <input id="cover" />
+
+  <label>Search tags (comma separated)</label>
+  <input id="search" />
+
+  <button onclick="generate()">Generate g.yml Entry</button>
+</div>
+
+<pre id="output"></pre>
+<button class="back" onclick="back()" style="display:none">Back</button>
+
+</div>
+
+<script>
+function generate(){
+  const data = {
+    name: name.value,
+    repo: repo.value,
+    file: file.value,
+    prefix: prefix.value,
+    tag: tag.value,
+    cdn: cdn.value,
+    credit: credit.value,
+    cover: cover.value,
+    search: search.value.split(',').map(x=>x.trim()).filter(Boolean)
+  };
+
+  let yaml = `- name: ${data.name}\n` +
+             `  repo: ${data.repo}\n` +
+             `  file: ${data.file}\n` +
+             `  prefix: ${data.prefix}\n` +
+             `  tag: ${data.tag}\n` +
+             `  cdn: ${data.cdn}\n` +
+             `  credit: ${data.credit}\n` +
+             `  cover: ${data.cover}\n` +
+             `  search:`;
+
+  data.search.forEach(s => {
+    yaml += `\n    - ${s}`;
+  });
+
+  formView.style.display = 'none';
+  output.style.display = 'block';
+  output.textContent = yaml;
+  document.querySelector('.back').style.display = 'block';
+}
+
+function back(){
+  formView.style.display = 'block';
+  output.style.display = 'none';
+  document.querySelector('.back').style.display = 'none';
+}
+</script>
+
+</body>
+</html>
 
