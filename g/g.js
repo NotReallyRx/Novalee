@@ -28,19 +28,20 @@ fetch('/g/g.yml')
 
       const coverLink = document.createElement('a');
       coverLink.href = href;
-      coverLink.innerHTML = `
-        <div class="card-cover">
-          const img = document.createElement('img');
-            img.src = iconSrc;
-            img.alt = '';
+     const coverDiv = document.createElement('div');
+coverDiv.className = 'card-cover';
 
-            img.onerror = () => {
-              img.remove();
+const img = document.createElement('img');
+img.src = iconSrc;
+img.alt = game.name || '';
 
-            coverLink.querySelector('.card-cover').classList.add('no-image');
-        };
-        </div>
-      `;
+img.onerror = () => {
+  img.remove();
+  coverDiv.classList.add('no-image');
+};
+
+coverDiv.appendChild(img);
+coverLink.appendChild(coverDiv);
 
       const footer = document.createElement('div');
       footer.className = 'card-footer';
