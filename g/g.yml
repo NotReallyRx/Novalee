@@ -10,6 +10,18 @@ providers:
     cover_repo: freebuisness/covers
     cover_dir: 
     cover_ext: png
+  
+  - name: C09
+    repo: SoupcanUBG/g
+    dir: g
+    prefix: gh
+    tag: main
+    credit: mysticful
+    cdn: jsdelivr
+
+    cover_repo: SoupcanUBG/co9
+    cover_dir: 
+    cover_ext: png
 
 
 
@@ -37,7 +49,7 @@ games:
     search:
       - C09
       - Co9
-  - name: Shooter
-    provider: gn-math
-    file: 273.html   
-  
+  - name: Class of 09
+    provider: C09
+    file: c.html
+    cover: main/c09.png
