@@ -13,10 +13,11 @@ let isCdn = false;
 // NEW: GH support
 const gh   = params.get('gh');
 const file = params.get('f');
+const tag  = params.get('tag') || 'main';
 
 if (gh && file) {
   isCdn = true;
-  currentSrc = `https://cdn.jsdelivr.net/gh/${gh}@main/${file}`;
+  currentSrc = `https://cdn.jsdelivr.net/gh/${gh}@${tag}/${file}`;
   currentKey = file.split('/').pop().replace('.html', '');
 } else {
   // existing system
