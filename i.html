@@ -72,12 +72,18 @@
   let currentSrc = null;
   let currentKey = null;
 
+  const params = new URLSearchParams(window.location.search);
+  let currentSrc = null;
+  let currentKey = null;
+  let isCdn = false;
+
   const urlOverride = params.get('url');
 
   for (const [prefix, key] of params.entries()) {
     if (prefix === 'url') continue;
     currentSrc = urlOverride ? urlOverride : `/${prefix}/${key}`;
     currentKey = key;
+    isCdn = !!urlOverride;
     break;
   }
 
@@ -85,17 +91,37 @@
   if (!currentSrc) {
     try {
       const saved = JSON.parse(sessionStorage.getItem('last'));
-      if (saved) { currentSrc = saved.src; currentKey = saved.key; }
+      if (saved) { currentSrc = saved.src; currentKey = saved.key; isCdn = saved.isCdn; }
     } catch {}
   }
 
   if (currentSrc) {
-    sessionStorage.setItem('last', JSON.stringify({ src: currentSrc, key: currentKey }));
+    sessionStorage.setItem('last', JSON.stringify({ src: currentSrc, key: currentKey, isCdn }));
     history.replaceState(null, '', window.location.pathname);
     label.textContent = currentKey.replace(/-/g, ' ');
+    loadGame(currentSrc, isCdn);
+  }
+
+  async function loadGame(src, cdn) {
     startLoad();
-    iframe.src = currentSrc;
-    iframe.addEventListener('load', finishLoad, { once: true });
+    if (cdn) {
+      try {
+        const res  = await fetch(src);
+        const html = await res.text();
+        const blob = new Blob([html], { type: 'text/html' });
+        const blobUrl = URL.createObjectURL(blob);
+        iframe.src = blobUrl;
+        iframe.addEventListener('load', () => {
+          URL.revokeObjectURL(blobUrl);
+          finishLoad();
+        }, { once: true });
+      } catch {
+        finishLoad();
+      }
+    } else {
+      iframe.src = src;
+      iframe.addEventListener('load', finishLoad, { once: true });
+    }
   }
 
   function startLoad() {
@@ -113,10 +139,8 @@
   }
 
   function reloadFrame() {
-    if (!iframe.src) return;
-    startLoad();
-    iframe.src = iframe.src;
-    iframe.addEventListener('load', finishLoad, { once: true });
+    if (!currentSrc) return;
+    loadGame(currentSrc, isCdn);
   }
 
   function toggleFullscreen() {
