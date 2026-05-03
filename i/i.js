@@ -28,6 +28,7 @@ const gh   = params.get('gh');
 const file = params.get('f');
 const tag  = params.get('tag') || 'main';
 const cdn  = params.get('cdn') || 'jsdelivr';
+const sw = params.get('sw') === '1';
 
 if (gh && file) {
   isCdn = true;
