@@ -95,7 +95,7 @@ async function loadGame(src, cdn) {
     if (!sw) {
       // remove any service worker registration
       html = html.replace(
-        /navigator\.serviceWorker\.register\([^)]+\);?/g,
+        /if\s*\(\s*navigator\.serviceWorker[\s\S]*?\}\s*/g,
         '// service worker disabled'
       );
     }
