@@ -52,9 +52,18 @@ games:
     cover: c09fs.png
     search:
       - C09FS
-      - "Class of 09: The Flip Side"
-      - Class of 09 The Flip Side
-      - Class of '09 The Flip Side
-      - "Class of 09: The FlipSide"
-      - Class of 09 The FlipSide
-      - Class of '09 The FlipSide
+  - name: "Class of '09: The Re-up"
+    provider: C09
+    file: r.html
+    cover: c09ru.png
+    search:
+      - C09RU
+  - name: PolyTrack
+    repo: SoupcanUBG/pt
+    file: index.html
+    prefix: gh
+    tag: main
+    cdn: jsdelivr
+    cover: https://cdn2.steamgriddb.com/icon/db7a18d35df96354dcdacefdfb99d126/32/64x64.png
+    search:
+      - pt
