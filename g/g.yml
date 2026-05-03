@@ -4,6 +4,6 @@ games:
     repo: fkrbt/web-port
     file: ddlc/index.html
     prefix: gh
-    tag: latest
+    tag: main
     credit: gn-math
     cdn: raw
