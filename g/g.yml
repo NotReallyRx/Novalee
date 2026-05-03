@@ -1,7 +1,7 @@
 games:
   
   - name: Doki Doki Literature Club
-    repo: mysticful/web-port
+    repo: fkrbt/web-port
     file: ddlc/index.html
     prefix: gh
     tag: latest
