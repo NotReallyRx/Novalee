@@ -73,30 +73,39 @@ if (currentSrc) {
 async function loadGame(src, cdn) {
   startLoad();
 
-  if (cdn) {
-    try {
-      const res  = await fetch(src);
-      const html = await res.text();
+ if (cdn) {
+  try {
+    const res  = await fetch(src);
+    let html = await res.text();
 
-      // build base path from file
-      const baseUrl = src.split('/').slice(0, -1).join('/') + '/';
+    const baseUrl = src.substring(0, src.lastIndexOf('/') + 1);
 
-      // inject <base> into <head>
-      const patchedHtml = html.replace(
-      /<head([^>]*)>/i,
-      `<head$1><base href="${baseUrl}">`
+    // ONLY inject <base> if it doesn't already exist
+    if (!/<base\s/i.test(html)) {
 
-      );
+      if (/<head[^>]*>/i.test(html)) {
+        // inject inside <head>
+        html = html.replace(
+          /<head([^>]*)>/i,
+          `<head$1><base href="${baseUrl}">`
+        );
+      } else {
+        // fallback: prepend if no <head>
+        html = `<base href="${baseUrl}">` + html;
+      }
 
-      iframe.removeAttribute('src');
-      iframe.srcdoc = patchedHtml;
-      iframe.addEventListener('load', finishLoad, { once: true });
-
-    } catch (e) {
-      console.error('Fetch failed:', e);
-      finishLoad();
     }
-  } else {
+
+    iframe.removeAttribute('src');
+    iframe.srcdoc = html;
+    iframe.addEventListener('load', finishLoad, { once: true });
+
+  } catch (e) {
+    console.error('Fetch failed:', e);
+    finishLoad();
+  }
+}
+ else {
     iframe.removeAttribute('srcdoc');
     iframe.src = src;
     iframe.addEventListener('load', finishLoad, { once: true });
