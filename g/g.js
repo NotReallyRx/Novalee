@@ -11,7 +11,10 @@ fetch('/g/g.yml')
    
     games.forEach(game => {
       const href = game.prefix === 'gh'
-        ? `/i/?gh=${game.repo}&f=${encodeURIComponent(game.file)}&tag=${encodeURIComponent(game.tag || 'main')}`
+        ? `/i/?gh=${game.repo}`
+        + `&f=${encodeURIComponent(game.file)}`
+        + `&tag=${encodeURIComponent(game.tag || 'main')}`
+        + `&cdn=${encodeURIComponent(game.cdn || 'jsdelivr')}`
         : `/i/?${game.prefix}=${game.key}`;
 
       const iconSrc = game.cover
