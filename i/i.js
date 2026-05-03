@@ -3,6 +3,7 @@ const loadBar = document.getElementById('load-bar');
 const label   = document.getElementById('tb-label');
 
 const CDN_HTML = 'https://cdn.jsdelivr.net/gh/freebuisness/html@main';
+
 function resolveCdn(cdn, repo, tag, file) {
   switch (cdn) {
     case 'githack':
@@ -23,19 +24,17 @@ let currentSrc = null;
 let currentKey = null;
 let isCdn = false;
 
-// NEW: GH support
 const gh   = params.get('gh');
 const file = params.get('f');
 const tag  = params.get('tag') || 'main';
 const cdn  = params.get('cdn') || 'jsdelivr';
-const sw = params.get('sw') === '1';
+const sw   = params.get('sw') === '1';
 
 if (gh && file) {
   isCdn = true;
-  currentSrc = resolveCdn(cdn, gh, tag, file);;
+  currentSrc = resolveCdn(cdn, gh, tag, file);
   currentKey = file.split('/').pop().replace('.html', '');
 } else {
-  // existing system
   for (const [prefix, key] of params.entries()) {
     isCdn = prefix === 'i';
     currentSrc = isCdn
@@ -46,7 +45,7 @@ if (gh && file) {
   }
 }
 
-// fallback (unchanged)
+// fallback
 if (!currentSrc) {
   try {
     const saved = JSON.parse(sessionStorage.getItem('last'));
@@ -71,52 +70,58 @@ if (currentSrc) {
   loadGame(currentSrc, isCdn);
 }
 
-async function loadGame(src, cdn) {
+async function loadGame(src, cdnMode) {
   startLoad();
 
- if (cdn) {
-  try {
-    const res  = await fetch(src);
-    let html = await res.text();
+  if (cdnMode) {
+    try {
+      const res  = await fetch(src);
+      let html = await res.text();
 
-    const baseUrl = src.substring(0, src.lastIndexOf('/') + 1);
+      const baseUrl = src.substring(0, src.lastIndexOf('/') + 1);
 
-    // ONLY inject <base> if it doesn't already exist
-    if (!/<base\s/i.test(html)) {
+      /* =========================
+         🔥 DISABLE SERVICE WORKER
+      ========================= */
+      if (!sw) {
+        const swPatch = `
+<script>
+Object.defineProperty(navigator, 'serviceWorker', {
+  get() { return undefined; }
+});
+</script>`;
 
-      if (/<head[^>]*>/i.test(html)) {
-        // inject inside <head>
-        html = html.replace(
-          /<head([^>]*)>/i,
-          `<head$1><base href="${baseUrl}">`
-        );
-      } 
-      // 🔥 SW CONTROL HERE
-    if (!sw) {
-      // remove any service worker registration
-      html = html.replace(
-        /if\s*\(\s*navigator\.serviceWorker[\s\S]*?\}\s*/g,
-        '// service worker disabled'
-      );
-    }
-      
-      else {
-        // fallback: prepend if no <head>
-        html = `<base href="${baseUrl}">` + html;
+        if (/<head[^>]*>/i.test(html)) {
+          html = html.replace(/<head([^>]*)>/i, `<head$1>${swPatch}`);
+        } else {
+          html = swPatch + html;
+        }
       }
 
+      /* =========================
+         📦 BASE TAG (ONLY IF MISSING)
+      ========================= */
+      if (!/<base\s/i.test(html)) {
+        if (/<head[^>]*>/i.test(html)) {
+          html = html.replace(
+            /<head([^>]*)>/i,
+            `<head$1><base href="${baseUrl}">`
+          );
+        } else {
+          html = `<base href="${baseUrl}">` + html;
+        }
+      }
+
+      iframe.removeAttribute('src');
+      iframe.srcdoc = html;
+      iframe.addEventListener('load', finishLoad, { once: true });
+
+    } catch (e) {
+      console.error('Fetch failed:', e);
+      finishLoad();
     }
 
-    iframe.removeAttribute('src');
-    iframe.srcdoc = html;
-    iframe.addEventListener('load', finishLoad, { once: true });
-
-  } catch (e) {
-    console.error('Fetch failed:', e);
-    finishLoad();
-  }
-}
- else {
+  } else {
     iframe.removeAttribute('srcdoc');
     iframe.src = src;
     iframe.addEventListener('load', finishLoad, { once: true });
@@ -126,7 +131,9 @@ async function loadGame(src, cdn) {
 function startLoad() {
   loadBar.style.transition = 'transform .35s ease';
   loadBar.style.transform  = 'scaleX(.45)';
-  setTimeout(() => { loadBar.style.transform = 'scaleX(.75)'; }, 300);
+  setTimeout(() => {
+    loadBar.style.transform = 'scaleX(.75)';
+  }, 300);
 }
 
 function finishLoad() {
@@ -157,7 +164,12 @@ function popOut() {
 }
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'F11')            { e.preventDefault(); toggleFullscreen(); }
-  if (e.ctrlKey && e.key === 'r') { e.preventDefault(); reloadFrame(); }
+  if (e.key === 'F11') {
+    e.preventDefault();
+    toggleFullscreen();
+  }
+  if (e.ctrlKey && e.key === 'r') {
+    e.preventDefault();
+    reloadFrame();
+  }
 });
-
