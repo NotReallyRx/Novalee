@@ -18,6 +18,7 @@ games:
     cdn: jsdelivr
     credit: mysticful
     cover: https://e.snmc.io/lk/o/x/f32f7845aadd79ec99c22ece60bb2b88/11265542
+    sw: 0
     search:
       - C09
       - Co9
