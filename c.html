@@ -117,30 +117,37 @@ button:hover{border-color:#333}
 </div>
 
 <script>
+const formView = document.getElementById('formView');
+const output = document.getElementById('output');
+
+function val(id){
+  return (document.getElementById(id)?.value || '').trim();
+}
+
 function generate(){
   const data = {
-    name: name.value,
-    repo: repo.value,
-    file: file.value,
-    prefix: prefix.value,
-    tag: tag.value,
-    cdn: cdn.value,
-    credit: credit.value,
-    cover: cover.value,
-    search: search.value.split(',').map(x=>x.trim()).filter(Boolean)
+    name: val('name'),
+    repo: val('repo'),
+    file: val('file'),
+    prefix: val('prefix'),
+    tag: val('tag'),
+    cdn: val('cdn'),
+    credit: val('credit'),
+    cover: val('cover'),
+    search: val('search').split(',').map(x=>x.trim()).filter(Boolean)
   };
 
-  let yaml = `- name: ${data.name}\n` +
-             `  repo: ${data.repo}\n` +
-             `  file: ${data.file}\n` +
-             `  prefix: ${data.prefix}\n` +
-             `  tag: ${data.tag}\n` +
-             `  cdn: ${data.cdn}\n` +
-             `  credit: ${data.credit}\n` +
-             `  cover: ${data.cover}\n` +
+  let yaml = `- name: ${data.name || ''}\n` +
+             `  repo: ${data.repo || ''}\n` +
+             `  file: ${data.file || ''}\n` +
+             `  prefix: ${data.prefix || ''}\n` +
+             `  tag: ${data.tag || ''}\n` +
+             `  cdn: ${data.cdn || ''}\n` +
+             `  credit: ${data.credit || ''}\n` +
+             `  cover: ${data.cover || ''}\n` +
              `  search:`;
 
-  data.search.forEach(s => {
+  (data.search || []).forEach(s => {
     yaml += `\n    - ${s}`;
   });
 
@@ -159,4 +166,3 @@ function back(){
 
 </body>
 </html>
-
