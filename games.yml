@@ -38,3 +38,8 @@ games:
   - name: Minecraft
     key: minecraft
     prefix: p
+
+  - name: 273
+    key: 273
+    prefix: i
+    url: https://cdn.jsdelivr.net/gh/freebuisness/html@main/273.html

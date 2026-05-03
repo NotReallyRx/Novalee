@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Games — Novalee</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="main.css" />
+  <style>
+    #content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 20px 0 20px;
+      scrollbar-width: none;
+    }
+    #content::-webkit-scrollbar { display: none; }
+
+    #page-label {
+      font-size: .62rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-family: 'Syne', sans-serif;
+      margin-bottom: 16px;
+    }
+
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 6px;
+    }
+
+    .game-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: all .15s;
+    }
+
+    .game-card:hover {
+      background: var(--raised);
+      border-color: var(--border-hi);
+    }
+
+    .game-card:active {
+      background: var(--dim);
+    }
+
+    .card-icon {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: var(--raised);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .card-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .card-icon.no-img {
+      background: var(--dim);
+    }
+
+    .card-body {
+      padding: 10px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .card-name {
+      font-family: 'Syne', sans-serif;
+      font-size: .78rem;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: .03em;
+    }
+
+    .card-path {
+      font-family: 'DM Mono', monospace;
+      font-size: .58rem;
+      color: var(--muted);
+      letter-spacing: .05em;
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+
+  <div id="content">
+    <div id="page-label">Games</div>
+    <div id="grid"></div>
+  </div>
+
+  <div id="toolbar">
+    <a class="tb-btn" href="/">Home</a>
+    <a class="tb-btn active" href="/g.html">Games</a>
+    <span id="tb-label"></span>
+    <a class="tb-btn" href="/s.html">Settings</a>
+  </div>
+
+</div>
+
+<script>
+  const GAMES = [
+    { name: 'Slope',       key: 'slope',       prefix: 'g' },
+    { name: 'Run 3',       key: 'run3',        prefix: 'g' },
+    { name: 'Drift Boss',  key: 'drift-boss',  prefix: 'g' },
+    { name: 'Tunnel Rush', key: 'tunnel-rush', prefix: 'g' },
+    { name: 'Snake',       key: 'snake',       prefix: 'a' },
+    { name: 'Tetris',      key: 'tetris',      prefix: 'a' },
+    { name: 'Pac-Man',     key: 'pacman',      prefix: 'a' },
+    { name: '2048',        key: '2048',        prefix: 'a' },
+    { name: 'Chess',       key: 'chess',       prefix: 'p' },
+    { name: 'Minecraft',   key: 'minecraft',   prefix: 'p' },
+    { name: '273',         key: '273',         prefix: 'i', url: 'https://cdn.jsdelivr.net/gh/freebuisness/html@main/273.html' },
+  ];
+
+  const grid = document.getElementById('grid');
+
+  GAMES.forEach(game => {
+    // Build the viewer href — pass url as encoded param if override exists
+    const href = game.url
+      ? `/I.html?${game.prefix}=${game.key}&url=${encodeURIComponent(game.url)}`
+      : `/I.html?${game.prefix}=${game.key}`;
+
+    const iconSrc = game.prefix === 'i'
+      ? `https://cdn.jsdelivr.net/gh/freebuisness/covers@main/${game.key}.png`
+      : `/icons/${game.key}.png`;
+
+    const a = document.createElement('a');
+    a.className = 'game-card';
+    a.href = href;
+    a.innerHTML = `
+      <div class="card-icon">
+        <img src="${iconSrc}" alt="" onerror="this.parentElement.classList.add('no-img');this.remove();" />
+      </div>
+      <div class="card-body">
+        <div class="card-name">${game.name}</div>
+        <div class="card-path">${game.url ? game.url.replace('https://', '') : `/${game.prefix}/${game.key}`}</div>
+      </div>
+    `;
+    grid.appendChild(a);
+  });
+</script>
+
+</body>
+</html>
