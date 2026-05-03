@@ -1,3 +1,18 @@
+providers:
+  - name: gn-math
+    repo: freebuisness/html
+    dir: 
+    prefix: gh
+    tag: main
+    credit: gn-math
+    cdn: jsdelivr
+
+    cover_repo: freebuisness/covers
+    cover_dir: 
+    cover_ext: png
+
+
+
 games:
   
   - name: Doki Doki Literature Club
@@ -22,3 +37,7 @@ games:
     search:
       - C09
       - Co9
+  - name: Shooter
+    provider: gn-math
+    file: 273.html   
+  
