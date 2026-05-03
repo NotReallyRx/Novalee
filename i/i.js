@@ -1,4 +1,3 @@
-```javascript
 const iframe  = document.getElementById('game-iframe');
 const loadBar = document.getElementById('load-bar');
 const label   = document.getElementById('tb-label');
@@ -116,4 +115,4 @@ document.addEventListener('keydown', e => {
   if (e.key === 'F11')            { e.preventDefault(); toggleFullscreen(); }
   if (e.ctrlKey && e.key === 'r') { e.preventDefault(); reloadFrame(); }
 });
-```
+
