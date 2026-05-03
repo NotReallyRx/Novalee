@@ -108,16 +108,12 @@
     startLoad();
     if (cdn) {
       try {
-        const res  = await fetch(src);
+        const res  = await fetch(src, { mode: 'cors' });
         const html = await res.text();
-        const blob = new Blob([html], { type: 'text/html' });
-        const blobUrl = URL.createObjectURL(blob);
-        iframe.src = blobUrl;
-        iframe.addEventListener('load', () => {
-          URL.revokeObjectURL(blobUrl);
-          finishLoad();
-        }, { once: true });
-      } catch {
+        iframe.srcdoc = html;
+        iframe.addEventListener('load', finishLoad, { once: true });
+      } catch (e) {
+        console.error('CDN fetch failed:', e);
         finishLoad();
       }
     } else {
