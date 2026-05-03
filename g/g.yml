@@ -2,6 +2,7 @@ games:
   
   - name: Doki Doki Literature Club
     repo: fkrbt/web-port
+    file: ddlc/index.html
     prefix: gh
     credit: gn-math
 
