@@ -6,7 +6,7 @@ const CDN_HTML = 'https://cdn.jsdelivr.net/gh/freebuisness/html@main';
 function resolveCdn(cdn, repo, tag, file) {
   switch (cdn) {
     case 'githack':
-      return `https://raw.githack.com/${repo}/${tag}/${file}`;
+      return `https://rawcdn.githack.com/${repo}/${tag}/${file}`;
 
     case 'raw':
       return `https://raw.githubusercontent.com/${repo}/refs/heads/${tag}/${file}`;
