@@ -46,15 +46,15 @@ games:
       - C09
       - Class of 09
 
-  - name: Class of '09: The Flip side
+  - name: "Class of '09: The Flip side"
     provider: C09
     file: f.html
     cover: c09fs.png
     search:
       - C09FS
-      - Class of 09: The Flip Side
+      - "Class of 09: The Flip Side"
       - Class of 09 The Flip Side
       - Class of '09 The Flip Side
-      - Class of 09: The FlipSide
+      - "Class of 09: The FlipSide"
       - Class of 09 The FlipSide
       - Class of '09 The FlipSide
