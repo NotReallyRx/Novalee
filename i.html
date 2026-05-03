@@ -81,9 +81,11 @@
 
   for (const [prefix, key] of params.entries()) {
     if (prefix === 'url') continue;
-    currentSrc = urlOverride ? urlOverride : `/${prefix}/${key}`;
+    isCdn = prefix === 'i';
+    currentSrc = isCdn
+      ? `https://cdn.jsdelivr.net/gh/freebuisness/html@main/${key}.html`
+      : (urlOverride ? urlOverride : `/${prefix}/${key}`);
     currentKey = key;
-    isCdn = !!urlOverride;
     break;
   }
 
