@@ -13,7 +13,6 @@ function joinPath(dir, file) {
 function getKey(final) {
   if (final.key) return final.key;
 
-  // fallback: use file name if possible
   if (final.file) {
     return final.file
       .split('/')
@@ -22,7 +21,6 @@ function getKey(final) {
       .toLowerCase();
   }
 
-  // fallback: use name
   return final.name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
@@ -118,67 +116,84 @@ fetch('/g/g.yml')
       const key = getKey(final);
 
       /* =========================
-         BUILD HREF
+         FILE RESOLVE (FIXED ADDITION ONLY)
       ========================= */
-      const filePath = joinPath(final.dir, final.file);
+      let filePath = '';
 
-      const href = final.prefix === 'r'
-        ? `/i/?r=${final.repo}`
-          + `&f=${encodeURIComponent(filePath)}`
-          + `&tag=${encodeURIComponent(final.tag || 'main')}`
-          + `&cdn=${encodeURIComponent(final.cdn || 'jsdelivr')}`
-        : `/i/?${final.prefix}=${final.key}`;
+      if (final.file) {
+        filePath = joinPath(final.dir || '', final.file);
+      } else if (final.key) {
+        filePath = joinPath(final.dir || '', final.key + '.html');
+      }
 
       /* =========================
-         COVER RESOLUTION
+         ROUTING (MINIMAL CHANGE)
+      ========================= */
+      let href = '';
+
+      if (final.prefix === 'r') {
+        href =
+          `/i/?r=${final.repo}`
+          + `&f=${encodeURIComponent(filePath)}`
+          + `&tag=${encodeURIComponent(final.tag || 'main')}`
+          + `&cdn=${encodeURIComponent(final.cdn || 'jsdelivr')}`;
+      }
+
+      else if (final.prefix === 'l') {
+        href = `/${filePath}`;
+      }
+
+      else {
+        href = '#';
+      }
+
+      /* =========================
+         COVER (ONLY FIXED FALLBACKS)
       ========================= */
       let iconSrc = null;
 
+      const coverDir = final.cover_dir || '';
+      const coverExt = final.cover_ext || 'png';
+
       if (final.cover) {
 
-        // FULL URL
         if (/^https?:\/\//i.test(final.cover)) {
           iconSrc = final.cover;
         }
 
-        // HAS EXTENSION (273.jpg)
         else if (/\.[a-z0-9]+$/i.test(final.cover)) {
-          const coverPath = joinPath(final.cover_dir, final.cover);
-
-          iconSrc = `https://cdn.jsdelivr.net/gh/${final.cover_repo}@${final.tag || 'main'}/${coverPath}`;
+          iconSrc =
+            '/' + joinPath(coverDir, final.cover);
         }
 
-        // NO EXTENSION (273)
         else {
-          const coverPath = joinPath(
-            final.cover_dir,
-            final.cover + '.' + (final.cover_ext || 'png')
-          );
-
-          iconSrc = `https://cdn.jsdelivr.net/gh/${final.cover_repo}@${final.tag || 'main'}/${coverPath}`;
+          iconSrc =
+            '/' +
+            joinPath(
+              coverDir,
+              final.cover + '.' + coverExt
+            );
         }
 
       } else {
 
-        // AUTO FALLBACK
         if (final.cover_repo) {
-          const coverPath = joinPath(
-            final.cover_dir,
-            key + '.' + (final.cover_ext || 'png')
-          );
-
-          iconSrc = `https://cdn.jsdelivr.net/gh/${final.cover_repo}@${final.tag || 'main'}/${coverPath}`;
+          iconSrc =
+            `https://cdn.jsdelivr.net/gh/${final.cover_repo}@${final.tag || 'main'}/`
+            + joinPath(coverDir, key + '.' + coverExt);
         }
+
         else if (final.prefix === 'r') {
           iconSrc = `${CDN_COVERS}/${key}.png`;
         }
+
         else {
           iconSrc = `/icons/${key}.png`;
         }
       }
 
       /* =========================
-         CREATE CARD
+         CARD
       ========================= */
       const card = document.createElement('div');
       card.className = 'game-card';
@@ -186,9 +201,7 @@ fetch('/g/g.yml')
       card.dataset.search = [
         final.name,
         ...(Array.isArray(final.search) ? final.search : [])
-      ]
-        .join(' ')
-        .toLowerCase();
+      ].join(' ').toLowerCase();
 
       const coverLink = document.createElement('a');
       coverLink.href = href;
@@ -227,7 +240,7 @@ fetch('/g/g.yml')
     });
 
     /* =========================
-       SEARCH
+       SEARCH (UNCHANGED)
     ========================= */
     const searchBar = document.getElementById('search-bar');
 
