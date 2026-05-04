@@ -106,7 +106,7 @@ function render(games, providers) {
     const provider = providers[game.provider] || {};
     const final = { ...provider, ...game };
 
-    const id = slugify(final.name); // ✅ MAIN CHANGE
+    const id = final.key || slugify(final.name);
     const isLocal = final.prefix === 'l';
 
     /* =========================
