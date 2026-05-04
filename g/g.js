@@ -7,7 +7,13 @@ const SEARCH_THRESHOLD = 0.38;
 ========================= */
 function slugify(name) {
   return encodeURIComponent(
-    name.trim().toLowerCase().replace(/\s+/g, '-')
+    name
+      .toLowerCase()
+      .trim()
+      .replace(/['":]/g, '')        // remove quotes/colons/apostrophes
+      .replace(/[^a-z0-9\s-]/g, '') // remove other punctuation
+      .replace(/\s+/g, '-')         // spaces → dash
+      .replace(/-+/g, '-')          // collapse dashes
   );
 }
 
