@@ -97,26 +97,7 @@ function applyIcon() {
 // =========================
 // PRESET CLOAKS
 // =========================
-var CLOAKS = {
-  search:    { title: 'Google',                     icon: './images/cloaks/Google Search.ico' },
-  drive:     { title: 'My Drive - Google Drive',    icon: './images/cloaks/Google Drive.ico' },
-  youtube:   { title: 'YouTube',                    icon: './images/cloaks/YouTube.ico' },
-  gmail:     { title: 'Gmail',                      icon: './images/cloaks/Gmail.ico' },
-  calendar:  { title: 'Google Calendar',            icon: './images/cloaks/Calendar.ico' },
-  meets:     { title: 'Google Meet',                icon: './images/cloaks/Meet.ico' },
-  classroom: { title: 'Classes',                    icon: './images/cloaks/Classroom.png' },
-  canvas:    { title: 'Canvas',                     icon: './images/cloaks/Canvas.ico' },
-  zoom:      { title: 'Zoom',                       icon: './images/cloaks/Zoom.ico' },
-  khan:      { title: 'Dashboard | Khan Academy',   icon: './images/cloaks/Khan Academy.ico' },
-  wikipedia: { title: 'ويكيبيديا - جهاد',           icon: 'https://ar.wikipedia.org/favicon.ico' },
-  nitter:    { title: 'nitter',                     icon: './images/cloaks/nitter.ico' },
-  teddit:    { title: 'teddit',                     icon: './images/cloaks/teddit.ico' },
-  invidious: { title: 'Invidious',                  icon: './images/cloaks/invidious.ico' },
-  bsite:     { title: 'Bilibili',                   icon: 'https://www.bilibili.com/favicon.ico' },
-  librex:    { title: 'LibreX',                     icon: './images/cloaks/librex.ico' },
-  cornhub:   { title: 'Cornhub',                    icon: './images/cloaks/cornhub.ico' },
-  itchio:    { title: 'Top free NSFW games for web',icon: './images/cloaks/itchio.ico' },
-};
+var CLOAKS = {};
 
 function applyCloak() {
   var select = document.getElementById('premadecloaks');
@@ -250,3 +231,32 @@ document.addEventListener('DOMContentLoaded', function () {
     }, 500);
   });
 });
+
+async function loadCloaks() {
+  try {
+    const res = await fetch('/s/s.yml');
+    const text = await res.text();
+
+    CLOAKS = jsyaml.load(text) || {};
+
+    populateDropdown();
+  } catch (e) {
+    console.error('Failed to load s.yml', e);
+  }
+}
+
+function populateDropdown() {
+  var select = document.getElementById('premadecloaks');
+  if (!select) return;
+
+  select.innerHTML = '<option value="">— choose —</option>';
+
+  for (var key in CLOAKS) {
+    var opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = CLOAKS[key].title;
+    select.appendChild(opt);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', loadCloaks);
