@@ -7,17 +7,17 @@
 
   <link rel="icon" href="./images/logo.png">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@500;600&display=swap" rel="stylesheet">
-
   <link rel="stylesheet" href="/main.css">
 
   <style>
     body {
+      margin: 0;
+    }
+
+    #content {
       padding: 32px;
       overflow-y: auto;
-      overflow-x: hidden;
     }
 
     .page-header {
@@ -30,7 +30,6 @@
       letter-spacing: .2em;
       text-transform: uppercase;
       color: var(--muted);
-      font-weight: 500;
     }
 
     .section-label {
@@ -40,7 +39,6 @@
       text-transform: uppercase;
       color: var(--muted);
       margin: 28px 0 10px;
-      font-weight: 500;
     }
 
     .box {
@@ -63,48 +61,19 @@
       border-bottom: none;
     }
 
-    .row-icon {
-      width: 28px;
-      height: 28px;
-      border-radius: 7px;
-      background: var(--dim);
-      border: 1px solid var(--border-hi);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .row-icon svg {
-      width: 13px;
-      height: 13px;
-      stroke: var(--muted);
-      fill: none;
-      stroke-width: 1.6;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
     .row-body {
       flex: 1;
-      min-width: 0;
     }
 
     .row-title {
       font-size: .72rem;
       color: var(--text);
-      letter-spacing: .04em;
     }
 
     .row-desc {
       font-size: .62rem;
       color: var(--muted);
       margin-top: 3px;
-      letter-spacing: .04em;
-    }
-
-    .row-action {
-      flex-shrink: 0;
     }
 
     .input-group {
@@ -123,30 +92,7 @@
       font-family: 'DM Mono', monospace;
       font-size: .62rem;
       padding: 0 10px;
-      letter-spacing: .04em;
-      outline: none;
       flex: 1;
-      min-width: 0;
-    }
-
-    .settings-input::placeholder {
-      color: var(--muted);
-    }
-
-    .settings-input:focus,
-    .settings-select:focus {
-      border-color: #3a3a3a;
-      background: var(--raised);
-    }
-
-    .settings-select {
-      cursor: pointer;
-      appearance: none;
-      -webkit-appearance: none;
-    }
-
-    .settings-select option {
-      background: var(--surface);
     }
 
     .btn {
@@ -158,16 +104,12 @@
       color: var(--muted);
       font-family: 'DM Mono', monospace;
       font-size: .62rem;
-      letter-spacing: .08em;
       cursor: pointer;
-      transition: all .15s;
-      white-space: nowrap;
     }
 
     .btn:hover {
       background: var(--raised);
       color: var(--text);
-      border-color: #3a3a3a;
     }
 
     .btn.danger {
@@ -175,20 +117,10 @@
       color: #7a3030;
     }
 
-    .btn.danger:hover {
-      background: #1a0a0a;
-      color: #cc5555;
-      border-color: #5a2020;
-    }
-
     #status {
       font-size: .6rem;
-      letter-spacing: .06em;
-      color: var(--muted);
       margin-top: 16px;
       min-height: 16px;
-      max-width: 680px;
-      transition: color .3s;
     }
 
     #status.ok  { color: #4a8a4a; }
@@ -198,119 +130,94 @@
 
 <body>
 
-  <div class="page-header">
-    <div class="page-title">Settings</div>
-  </div>
+<div id="app">
 
-  <div class="section-label">Tab cloak</div>
-  <div class="box">
+  <!-- MAIN CONTENT -->
+  <div id="content">
 
-    <div class="row">
-      <div class="row-icon">
-        <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h7"/></svg>
-      </div>
-      <div class="row-body">
-        <div class="row-title">Tab title</div>
-        <div class="row-desc">Overrides the browser tab text</div>
-      </div>
-      <div class="row-action">
+    <div class="page-header">
+      <div class="page-title">Settings</div>
+    </div>
+
+    <div class="section-label">Tab cloak</div>
+    <div class="box">
+
+      <div class="row">
+        <div class="row-body">
+          <div class="row-title">Tab title</div>
+          <div class="row-desc">Overrides the browser tab text</div>
+        </div>
         <div class="input-group">
-          <input class="settings-input" type="text" id="title-input" placeholder="e.g. Google">
+          <input class="settings-input" id="title-input" placeholder="e.g. Google">
           <button class="btn" onclick="applyTitle()">set</button>
         </div>
       </div>
-    </div>
 
-    <div class="row">
-      <div class="row-icon">
-        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18"/></svg>
-      </div>
-      <div class="row-body">
-        <div class="row-title">Favicon URL</div>
-        <div class="row-desc">Overrides the browser tab icon</div>
-      </div>
-      <div class="row-action">
+      <div class="row">
+        <div class="row-body">
+          <div class="row-title">Favicon URL</div>
+          <div class="row-desc">Overrides the browser tab icon</div>
+        </div>
         <div class="input-group">
-          <input class="settings-input" type="text" id="icon-input" placeholder="https://...">
+          <input class="settings-input" id="icon-input" placeholder="https://...">
           <button class="btn" onclick="applyIcon()">set</button>
         </div>
       </div>
-    </div>
 
-    <div class="row">
-      <div class="row-icon">
-        <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
-      </div>
-      <div class="row-body">
-        <div class="row-title">Premade cloak</div>
-        <div class="row-desc">Apply a preset title + icon combo</div>
-      </div>
-      <div class="row-action">
+      <div class="row">
+        <div class="row-body">
+          <div class="row-title">Premade cloak</div>
+          <div class="row-desc">Preset title + icon</div>
+        </div>
         <div class="input-group">
           <select class="settings-select" id="premadecloaks">
             <option value="">— choose —</option>
-            <option value="search">Google Search</option>
-            <option value="drive">Google Drive</option>
+            <option value="search">Google</option>
+            <option value="drive">Drive</option>
             <option value="youtube">YouTube</option>
             <option value="gmail">Gmail</option>
-            <option value="calendar">Google Calendar</option>
-            <option value="meets">Google Meet</option>
-            <option value="classroom">Google Classroom</option>
-            <option value="canvas">Canvas</option>
-            <option value="zoom">Zoom</option>
-            <option value="khan">Khan Academy</option>
-            <option value="wikipedia">Wikipedia (AR)</option>
-            <option value="nitter">Nitter</option>
-            <option value="teddit">Teddit</option>
-            <option value="invidious">Invidious</option>
-            <option value="bsite">Bilibili</option>
-            <option value="librex">LibreX</option>
-            <option value="cornhub">Cornhub</option>
-            <option value="itchio">itch.io</option>
+            <option value="classroom">Classroom</option>
           </select>
           <button class="btn" onclick="applyCloak()">set</button>
         </div>
       </div>
-    </div>
 
-    <div class="row">
-      <div class="row-icon">
-        <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
-      </div>
-      <div class="row-body">
-        <div class="row-title">Reset tab</div>
-        <div class="row-desc">Removes all saved tab data</div>
-      </div>
-      <div class="row-action">
+      <div class="row">
+        <div class="row-body">
+          <div class="row-title">Reset tab</div>
+          <div class="row-desc">Clear saved cloak</div>
+        </div>
         <button class="btn danger" onclick="resetTab()">reset</button>
       </div>
+
     </div>
 
-  </div>
-
-  <div class="section-label">Navigation</div>
-  <div class="box">
-
-    <div class="row">
-      <div class="row-icon">
-        <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M8 4v16"/></svg>
-      </div>
-      <div class="row-body">
-        <div class="row-title">Open in about:blank</div>
-        <div class="row-desc">Opens this page inside a blank tab</div>
-      </div>
-      <div class="row-action">
+    <div class="section-label">Navigation</div>
+    <div class="box">
+      <div class="row">
+        <div class="row-body">
+          <div class="row-title">Open in about:blank</div>
+        </div>
         <button class="btn" id="cloaker-button">open</button>
       </div>
     </div>
 
+    <div id="status"></div>
+
   </div>
 
-  <div id="status"></div>
+  <!-- NAVBAR (FROM YOUR HOMEPAGE) -->
+  <div id="toolbar">
+    <a class="tb-btn" href="/">Home</a>
+    <a class="tb-btn" href="/g/">Games</a>
+    <span id="tb-label"></span>
+    <a class="tb-btn active" href="/s/">Settings</a>
+  </div>
 
-  <!-- IMPORTANT: order matters -->
-  <script src="/main.js"></script>
-  <script src="s.js"></script>
+</div>
+
+<script src="/main.js"></script>
+<script src="s.js"></script>
 
 </body>
 </html>
