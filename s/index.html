@@ -4,11 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Settings</title>
+
   <link rel="icon" href="./images/logo.png">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@500;600&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="main.css">
+
   <style>
     body {
       padding: 32px;
@@ -109,31 +113,7 @@
       width: 240px;
     }
 
-    .settings-input {
-      height: 28px;
-      background: var(--dim);
-      border: 1px solid var(--border-hi);
-      border-radius: 6px;
-      color: var(--text);
-      font-family: 'DM Mono', monospace;
-      font-size: .62rem;
-      padding: 0 10px;
-      letter-spacing: .06em;
-      outline: none;
-      transition: border-color .15s, background .15s;
-      flex: 1;
-      min-width: 0;
-    }
-
-    .settings-input::placeholder {
-      color: var(--muted);
-    }
-
-    .settings-input:focus {
-      border-color: #3a3a3a;
-      background: var(--raised);
-    }
-
+    .settings-input,
     .settings-select {
       height: 28px;
       background: var(--dim);
@@ -145,9 +125,22 @@
       padding: 0 10px;
       letter-spacing: .04em;
       outline: none;
-      cursor: pointer;
       flex: 1;
       min-width: 0;
+    }
+
+    .settings-input::placeholder {
+      color: var(--muted);
+    }
+
+    .settings-input:focus,
+    .settings-select:focus {
+      border-color: #3a3a3a;
+      background: var(--raised);
+    }
+
+    .settings-select {
+      cursor: pointer;
       appearance: none;
       -webkit-appearance: none;
     }
@@ -169,17 +162,12 @@
       cursor: pointer;
       transition: all .15s;
       white-space: nowrap;
-      flex-shrink: 0;
     }
 
     .btn:hover {
       background: var(--raised);
       color: var(--text);
       border-color: #3a3a3a;
-    }
-
-    .btn:active {
-      background: var(--dim);
     }
 
     .btn.danger {
@@ -207,7 +195,9 @@
     #status.err { color: #8a4a4a; }
   </style>
 </head>
+
 <body>
+
   <div class="page-header">
     <div class="page-title">Settings</div>
   </div>
@@ -233,7 +223,7 @@
 
     <div class="row">
       <div class="row-icon">
-        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18"/><circle cx="7" cy="6" r=".8" fill="currentColor" stroke="none"/><circle cx="10" cy="6" r=".8" fill="currentColor" stroke="none"/></svg>
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18"/></svg>
       </div>
       <div class="row-body">
         <div class="row-title">Favicon URL</div>
@@ -272,7 +262,7 @@
             <option value="wikipedia">Wikipedia (AR)</option>
             <option value="nitter">Nitter</option>
             <option value="teddit">Teddit</option>
-            <option value="indivious">Invidious</option>
+            <option value="invidious">Invidious</option>
             <option value="bsite">Bilibili</option>
             <option value="librex">LibreX</option>
             <option value="cornhub">Cornhub</option>
@@ -289,7 +279,7 @@
       </div>
       <div class="row-body">
         <div class="row-title">Reset tab</div>
-        <div class="row-desc">Completely removes all saved tab data</div>
+        <div class="row-desc">Removes all saved tab data</div>
       </div>
       <div class="row-action">
         <button class="btn danger" onclick="resetTab()">reset</button>
@@ -318,7 +308,9 @@
 
   <div id="status"></div>
 
+  <!-- IMPORTANT: order matters -->
+  <script src="/main.js"></script>
   <script src="s.js"></script>
- 
+
 </body>
 </html>
