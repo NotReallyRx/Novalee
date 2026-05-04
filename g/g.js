@@ -28,7 +28,7 @@ function getKey(final) {
 }
 
 /* =========================
-   LEVENSHTEIN
+   LEVENSHTEIN SEARCH
 ========================= */
 function levenshtein(a, b) {
   a = a.toLowerCase();
@@ -91,7 +91,7 @@ function scoreMatch(query, text) {
 }
 
 /* =========================
-   LOAD YAML
+   LOAD GAME DATA
 ========================= */
 fetch('/g/g.yml')
   .then(res => res.text())
@@ -108,19 +108,16 @@ fetch('/g/g.yml')
     games.forEach(game => {
 
       /* =========================
-         MERGE (GAME OVERRIDES PROVIDER)
+         MERGE PROVIDER + OVERRIDES
       ========================= */
       const provider = providers[game.provider] || {};
-      const final = {
-        ...provider,   // defaults
-        ...game        // overrides
-      };
+      const final = { ...provider, ...game };
 
       const key = getKey(final);
       const isLocal = final.prefix === 'l';
 
       /* =========================
-         BUILD FILE PATH
+         RESOLVE FILE PATH
       ========================= */
       let filePath;
 
@@ -132,23 +129,22 @@ fetch('/g/g.yml')
       }
 
       /* =========================
-         BUILD HREF
+         BUILD HREF (/i/ SYSTEM ONLY)
       ========================= */
       let href;
 
-      if (isLocal) {
-        href = `/${filePath}`;
-      } else if (final.prefix === 'r') {
-        href = `/i/?r=${final.repo}`
-          + `&f=${encodeURIComponent(filePath)}`
-          + `&tag=${encodeURIComponent(final.tag || 'main')}`
-          + `&cdn=${encodeURIComponent(final.cdn || 'jsdelivr')}`;
+      if (final.prefix === 'r') {
+        href =
+          `/i/?r=${final.repo}` +
+          `&f=${encodeURIComponent(filePath)}` +
+          `&tag=${encodeURIComponent(final.tag || 'main')}` +
+          `&cdn=${encodeURIComponent(final.cdn || 'jsdelivr')}`;
       } else {
-        href = `/i/?${final.prefix}=${key}`;
+        href = `/i/?g=${key}`;
       }
 
       /* =========================
-         COVER RESOLUTION (WITH OVERRIDES)
+         COVER RESOLUTION
       ========================= */
       let iconSrc;
 
@@ -200,7 +196,9 @@ fetch('/g/g.yml')
       card.dataset.search = [
         final.name,
         ...(Array.isArray(final.search) ? final.search : [])
-      ].join(' ').toLowerCase();
+      ]
+        .join(' ')
+        .toLowerCase();
 
       const coverLink = document.createElement('a');
       coverLink.href = href;
