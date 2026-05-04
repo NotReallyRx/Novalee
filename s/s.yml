@@ -1,0 +1,39 @@
+search:
+  title: Google
+  icon: ./images/cloaks/Google Search.ico
+
+drive:
+  title: My Drive - Google Drive
+  icon: ./images/cloaks/Google Drive.ico
+
+youtube:
+  title: YouTube
+  icon: ./images/cloaks/YouTube.ico
+
+gmail:
+  title: Gmail
+  icon: ./images/cloaks/Gmail.ico
+
+calendar:
+  title: Google Calendar
+  icon: ./images/cloaks/Calendar.ico
+
+meets:
+  title: Google Meet
+  icon: ./images/cloaks/Meet.ico
+
+classroom:
+  title: Classes
+  icon: ./images/cloaks/Classroom.png
+
+canvas:
+  title: Canvas
+  icon: ./images/cloaks/Canvas.ico
+
+zoom:
+  title: Zoom
+  icon: ./images/cloaks/Zoom.ico
+
+khan:
+  title: Dashboard | Khan Academy
+  icon: ./images/cloaks/Khan Academy.ico
