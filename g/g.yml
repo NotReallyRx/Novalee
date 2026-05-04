@@ -67,3 +67,13 @@ games:
   - name: YOMI Hustle
     provider: gn-math
     key: "776"
+  
+  - name: Doki Doki Literature Club+
+    repo: SoupcanUBG/ddlc-plus
+    file: index.html
+    tag: main
+    credit: selenite (ARCHIVED)
+    cdn: jsdelivr
+    cover: https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/DDLC_series_logo.svg/500px-DDLC_series_logo.svg.png
+    search:
+      - ddlc
