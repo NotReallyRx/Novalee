@@ -1,86 +1,35 @@
-// =========================
-// CLOAK DETECTION
-// =========================
-const tabData = JSON.parse(localStorage.getItem('tab') || '{}');
-const hasCloak = !!(tabData.title || tabData.icon);
-
-// =========================
-// ELEMENTS
-// =========================
 const iframe  = document.getElementById('game-iframe');
 const loadBar = document.getElementById('load-bar');
 const label   = document.getElementById('tb-label');
 
-const CDN_HTML = 'https://cdn.jsdelivr.net/gh/freebuisness/html@main';
 const PROXY = 'https://novalee.rxk.workers.dev/?url=';
 
-// =========================
-// CDN RESOLVER
-// =========================
-function resolveCdn(cdn, repo, tag, file) {
-  switch (cdn) {
-    case 'githack':
-      return `https://rawcdn.githack.com/${repo}/${tag}/${file}`;
-    case 'raw':
-      return `https://raw.githubusercontent.com/${repo}/refs/heads/${tag}/${file}`;
-    case 'jsdelivr':
-    default:
-      return `https://cdn.jsdelivr.net/gh/${repo}@${tag}/${file}`;
-  }
-}
+/* =========================
+   CLOAK DETECTION
+========================= */
+const tabData = JSON.parse(localStorage.getItem('tab') || '{}');
+const hasCloak = !!(tabData.title || tabData.icon);
 
-// =========================
-// PROXY WRAPPER (REMOTE ONLY)
-// =========================
+/* =========================
+   PROXY WRAPPER
+========================= */
 function useProxy(url) {
   return PROXY + encodeURIComponent(url);
 }
 
-// =========================
-// PARAMS
-// =========================
+/* =========================
+   LOAD PARAM
+========================= */
 const params = new URLSearchParams(window.location.search);
+const gameId = params.get('g');
 
 let currentSrc = null;
 let currentKey = null;
 
-// NEW SYSTEM:
-// r = remote (proxy)
-// l = local (no proxy)
-
-const remoteRepo = params.get('r');
-const file = params.get('f');
-const tag  = params.get('tag') || 'main';
-const cdn  = params.get('cdn') || 'jsdelivr';
-
-const localFile = params.get('l');
-
-// =========================
-// ROUTING
-// =========================
-
-// -------------------------
-// REMOTE (PROXY ENABLED)
-// -------------------------
-if (remoteRepo && file) {
-  const raw = resolveCdn(cdn, remoteRepo, tag, file);
-  currentSrc = useProxy(raw);
-
-  currentKey = file.split('/').pop().replace(/\.[^/.]+$/, '');
-}
-
-// -------------------------
-// LOCAL (NO PROXY)
-// -------------------------
-else if (localFile) {
-  currentSrc = `/${localFile}`;
-  currentKey = localFile.split('/').pop().replace(/\.[^/.]+$/, '');
-}
-
-// =========================
-// FALLBACK CACHE
-// =========================
-if (!currentSrc) {
+/* =========================
+   FALLBACK SESSION
+========================= */
+function loadFallback() {
   try {
     const saved = JSON.parse(sessionStorage.getItem('last'));
     if (saved) {
@@ -90,31 +39,107 @@ if (!currentSrc) {
   } catch {}
 }
 
-// =========================
-// INIT
-// =========================
-if (currentSrc) {
-  sessionStorage.setItem('last', JSON.stringify({
-    src: currentSrc,
-    key: currentKey
-  }));
+/* =========================
+   BOOT
+========================= */
+if (!gameId) {
+  loadFallback();
+} else {
 
-  history.replaceState(null, '', window.location.pathname);
+  fetch('/g/g.yml')
+    .then(res => res.text())
+    .then(text => {
+      const data = jsyaml.load(text);
 
-  if (label && currentKey) {
-    label.textContent = currentKey.replace(/-/g, ' ');
-  }
+      const providers = {};
+      (data.providers || []).forEach(p => {
+        providers[p.name] = p;
+      });
 
-  if (!hasCloak) {
-    applyMeta(currentSrc);
-  }
+      const games = data.games || [];
 
-  loadGame(currentSrc);
+      /* =========================
+         FIND GAME
+      ========================= */
+      const game = games.find(g =>
+        g.key === gameId ||
+        g.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === gameId
+      );
+
+      if (!game) {
+        document.body.innerHTML = "Game not found: " + gameId;
+        return;
+      }
+
+      const provider = providers[game.provider] || {};
+      const final = { ...provider, ...game };
+
+      const key = final.key ||
+        game.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+      currentKey = key;
+
+      const isLocal = final.prefix === 'l';
+
+      /* =========================
+         RESOLVE FILE
+      ========================= */
+      let filePath;
+
+      if (isLocal) {
+        const dir = final.dir || 'games';
+        filePath = `${dir}/${key}/index.html`;
+      } else {
+        filePath = (final.dir ? final.dir + '/' : '') + final.file;
+      }
+
+      /* =========================
+         RESOLVE FINAL URL
+      ========================= */
+      let rawUrl;
+
+      if (isLocal) {
+        rawUrl = `/${filePath}`;
+      } else if (final.prefix === 'r') {
+        rawUrl =
+          `https://cdn.jsdelivr.net/gh/${final.repo}@${final.tag || 'main'}/${filePath}`;
+      } else {
+        rawUrl = filePath;
+      }
+
+      currentSrc = isLocal ? rawUrl : useProxy(rawUrl);
+
+      /* =========================
+         SAVE SESSION
+      ========================= */
+      sessionStorage.setItem('last', JSON.stringify({
+        src: currentSrc,
+        key: currentKey
+      }));
+
+      history.replaceState(null, '', window.location.pathname);
+
+      /* =========================
+         LABEL
+      ========================= */
+      if (label && currentKey) {
+        label.textContent = currentKey.replace(/-/g, ' ');
+      }
+
+      /* =========================
+         META
+      ========================= */
+      if (!hasCloak) {
+        applyMeta(rawUrl);
+      }
+
+      loadGame(currentSrc);
+    });
 }
 
-// =========================
-// LOAD GAME
-// =========================
+/* =========================
+   LOAD GAME
+========================= */
 function loadGame(src) {
   startLoad();
 
@@ -131,21 +156,19 @@ function loadGame(src) {
   }, { once: true });
 }
 
-// =========================
-// META EXTRACTION
-// =========================
+/* =========================
+   META EXTRACTION
+========================= */
 async function applyMeta(url) {
   try {
     const res = await fetch(url);
     const html = await res.text();
 
-    // TITLE
     const titleMatch = html.match(/<title>(.*?)<\/title>/i);
     if (titleMatch && !hasCloak) {
       document.title = titleMatch[1];
     }
 
-    // ICON
     const iconMatch =
       html.match(/<link[^>]*rel=["']icon["'][^>]*href=["']([^"']+)["']/i) ||
       html.match(/<link[^>]*rel=["']apple-touch-icon["'][^>]*href=["']([^"']+)["']/i);
@@ -171,9 +194,9 @@ async function applyMeta(url) {
   }
 }
 
-// =========================
-// LOADING UI
-// =========================
+/* =========================
+   LOADING UI
+========================= */
 function startLoad() {
   if (!loadBar) return;
   loadBar.style.transform = 'scaleX(.5)';
