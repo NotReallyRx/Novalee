@@ -1,7 +1,7 @@
 providers:
   - name: gn-math
     repo: freebuisness/html
-    dir: 
+    dir: ""
     prefix: r
     tag: main
     credit: gn-math
