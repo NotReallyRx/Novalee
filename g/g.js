@@ -3,6 +3,15 @@ const grid = document.getElementById('grid');
 const SEARCH_THRESHOLD = 0.38;
 
 /* =========================
+   NAME → URL ID
+========================= */
+function slugify(name) {
+  return encodeURIComponent(
+    name.trim().toLowerCase().replace(/\s+/g, '-')
+  );
+}
+
+/* =========================
    HELPERS
 ========================= */
 function joinPath(dir, file) {
@@ -10,73 +19,55 @@ function joinPath(dir, file) {
   return dir.replace(/\/+$/, '') + '/' + file.replace(/^\/+/, '');
 }
 
-function getKey(final) {
-  if (final.key) return final.key;
-
-  if (final.file) {
-    return final.file
-      .split('/')
-      .pop()
-      .replace(/\.[^/.]+$/, '')
-      .toLowerCase();
-  }
-
-  return final.name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-}
-
 /* =========================
-   SEARCH
+   SEARCH (unchanged)
 ========================= */
 function levenshtein(a, b) {
   a = a.toLowerCase();
   b = b.toLowerCase();
 
-  const matrix = Array.from({ length: b.length + 1 }, () =>
+  const m = Array.from({ length: b.length + 1 }, () =>
     Array(a.length + 1).fill(0)
   );
 
-  for (let i = 0; i <= a.length; i++) matrix[0][i] = i;
-  for (let j = 0; j <= b.length; j++) matrix[j][0] = j;
+  for (let i = 0; i <= a.length; i++) m[0][i] = i;
+  for (let j = 0; j <= b.length; j++) m[j][0] = j;
 
   for (let j = 1; j <= b.length; j++) {
     for (let i = 1; i <= a.length; i++) {
       const cost = a[i - 1] === b[j - 1] ? 0 : 1;
 
-      matrix[j][i] = Math.min(
-        matrix[j][i - 1] + 1,
-        matrix[j - 1][i] + 1,
-        matrix[j - 1][i - 1] + cost
+      m[j][i] = Math.min(
+        m[j][i - 1] + 1,
+        m[j - 1][i] + 1,
+        m[j - 1][i - 1] + cost
       );
     }
   }
 
-  return matrix[b.length][a.length];
+  return m[b.length][a.length];
 }
 
-function scoreMatch(query, text) {
-  query = query.toLowerCase().trim();
-  text = text.toLowerCase();
+function scoreMatch(q, t) {
+  q = q.toLowerCase().trim();
+  t = t.toLowerCase();
 
-  if (!query) return 1;
+  if (!q) return 1;
 
-  const tokens = text.split(/\s+/);
+  const tokens = t.split(/\s+/);
   let best = 0;
 
-  for (const t of tokens) {
-    const dist = levenshtein(query, t);
-    const max = Math.max(query.length, t.length);
+  for (const token of tokens) {
+    const dist = levenshtein(q, token);
+    const max = Math.max(q.length, token.length);
     const score = 1 - dist / max;
 
-    const finalScore = Math.max(
+    best = Math.max(
+      best,
       score,
-      t.includes(query) ? 0.9 : 0,
-      t === query ? 1 : 0
+      token.includes(q) ? 0.9 : 0,
+      token === q ? 1 : 0
     );
-
-    best = Math.max(best, finalScore);
   }
 
   return best;
@@ -86,7 +77,7 @@ function scoreMatch(query, text) {
    LOAD YAML
 ========================= */
 fetch('/g/g.yml')
-  .then(res => res.text())
+  .then(r => r.text())
   .then(text => {
     const data = jsyaml.load(text);
 
@@ -95,64 +86,59 @@ fetch('/g/g.yml')
       providers[p.name] = p;
     });
 
-    const games = data.games || [];
-
-    renderGames(games, providers);
+    render(data.games || [], providers);
     setupSearch();
   });
 
 /* =========================
-   RENDER GAMES
+   RENDER
 ========================= */
-function renderGames(games, providers) {
+function render(games, providers) {
 
   games.forEach(game => {
 
     const provider = providers[game.provider] || {};
     const final = { ...provider, ...game };
 
-    const key = getKey(final);
+    const id = slugify(final.name); // ✅ MAIN CHANGE
     const isLocal = final.prefix === 'l';
 
     /* =========================
-       IMPORTANT:
-       ALL GAMES USE /i/?g=
+       /i/?g=NAME-SLUG
     ========================= */
-    const href = `/i/?g=${key}`;
+    const href = `/i/?g=${id}`;
 
     /* =========================
-       RESOLVE COVER
+       COVER
     ========================= */
-    let iconSrc;
+    let icon;
 
     if (final.cover) {
-
       if (/^https?:\/\//i.test(final.cover)) {
-        iconSrc = final.cover;
+        icon = final.cover;
       } else {
-        const coverPath = joinPath(final.cover_dir, final.cover);
+        const path = joinPath(final.cover_dir, final.cover);
 
-        iconSrc = isLocal
-          ? `/${coverPath}`
-          : `https://cdn.jsdelivr.net/gh/${final.cover_repo}@${final.tag || 'main'}/${coverPath}`;
+        icon = isLocal
+          ? `/${path}`
+          : `https://cdn.jsdelivr.net/gh/${final.cover_repo}@${final.tag || 'main'}/${path}`;
       }
 
     } else if (isLocal) {
       const dir = final.cover_dir || 'c';
-      const ext = final.cover_ext || 'png';
-      iconSrc = `/${dir}/${key}.${ext}`;
+      icon = `/${dir}/${id}.png`;
 
     } else if (final.cover_repo) {
-      const coverPath = joinPath(
+      const path = joinPath(
         final.cover_dir,
-        key + '.' + (final.cover_ext || 'png')
+        id + '.' + (final.cover_ext || 'png')
       );
 
-      iconSrc =
-        `https://cdn.jsdelivr.net/gh/${final.cover_repo}@${final.tag || 'main'}/${coverPath}`;
+      icon =
+        `https://cdn.jsdelivr.net/gh/${final.cover_repo}@${final.tag || 'main'}/${path}`;
 
     } else {
-      iconSrc = `${CDN_COVERS}/${key}.png`;
+      icon = `${CDN_COVERS}/${id}.png`;
     }
 
     /* =========================
@@ -163,17 +149,17 @@ function renderGames(games, providers) {
 
     card.dataset.search = [
       final.name,
-      ...(Array.isArray(final.search) ? final.search : [])
+      ...(final.search || [])
     ].join(' ').toLowerCase();
 
-    const link = document.createElement('a');
-    link.href = href;
+    const a = document.createElement('a');
+    a.href = href;
 
     const cover = document.createElement('div');
     cover.className = 'card-cover';
 
     const img = document.createElement('img');
-    img.src = iconSrc;
+    img.src = icon;
     img.alt = final.name;
 
     img.onerror = () => {
@@ -182,24 +168,22 @@ function renderGames(games, providers) {
     };
 
     cover.appendChild(img);
-    link.appendChild(cover);
+    a.appendChild(cover);
 
     const footer = document.createElement('div');
     footer.className = 'card-footer';
-    footer.innerHTML = `<span class="card-name">${final.name}</span>`;
+    footer.innerHTML = `<span>${final.name}</span>`;
 
     if (final.credit) {
-      const credit = document.createElement('a');
-      credit.className = 'card-credit';
-      credit.textContent = final.credit;
-      credit.href = `/r/?=${final.credit}`;
-      credit.onclick = e => e.stopPropagation();
-      footer.appendChild(credit);
+      const c = document.createElement('a');
+      c.href = `/r/?=${final.credit}`;
+      c.textContent = final.credit;
+      c.onclick = e => e.stopPropagation();
+      footer.appendChild(c);
     }
 
-    card.appendChild(link);
+    card.appendChild(a);
     card.appendChild(footer);
-
     grid.appendChild(card);
   });
 }
@@ -208,11 +192,10 @@ function renderGames(games, providers) {
    SEARCH
 ========================= */
 function setupSearch() {
-  const searchBar = document.getElementById('search-bar');
+  const input = document.getElementById('search-bar');
 
-  searchBar.addEventListener('input', e => {
+  input.addEventListener('input', e => {
     const q = e.target.value.trim().toLowerCase();
-
     const cards = [...document.querySelectorAll('.game-card')];
 
     const ranked = cards.map(card => ({
@@ -224,10 +207,8 @@ function setupSearch() {
 
     ranked.forEach(({ card, score }) => {
       const show = score >= SEARCH_THRESHOLD;
-
       card.style.display = show ? '' : 'none';
       card.style.opacity = show ? '1' : '0.25';
-
       grid.appendChild(card);
     });
   });
