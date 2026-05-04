@@ -18,13 +18,16 @@ function slugify(name) {
     name
       .toLowerCase()
       .trim()
-      .replace(/['":]/g, '')      // remove apostrophes + quotes + colons
-      .replace(/[^a-z0-9\s-]/g, '') // remove other punctuation
-      .replace(/\s+/g, '-')       // spaces → dash
-      .replace(/-+/g, '-')        // collapse multiple dashes
+      .replace(/['":]/g, '')
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
   );
 }
-const gameId = decodeURIComponent(new URLSearchParams(location.search).get('g') || '');
+
+const gameId = decodeURIComponent(
+  new URLSearchParams(location.search).get('g') || ''
+);
 
 if (!gameId) fail("Missing ?g=");
 
@@ -48,9 +51,14 @@ fetch('/g/g.yml')
     let data;
     try {
       data = jsyaml.load(text);
-    } catch (e) {
-      return fail("YAML error");
+    } catch {
+      return fail("YAML parse error");
     }
+
+    const providers = {};
+    (data.providers || []).forEach(p => {
+      providers[p.name] = p;
+    });
 
     const games = data.games || [];
 
@@ -60,43 +68,145 @@ fetch('/g/g.yml')
 
     if (!game) return fail("Game not found: " + gameId);
 
-    const providers = {};
-    (data.providers || []).forEach(p => {
-      providers[p.name] = p;
-    });
+    const provider = providers[game.provider] || {};
+    const final = { ...provider, ...game };
 
-    const final = { ...providers[game.provider] || {}, ...game };
-
-    const id = slugify(final.name);
     const isLocal = final.prefix === 'l';
 
+    /* =========================
+       FILE RESOLUTION
+    ========================= */
+    const dir = final.dir || '';
+    const key = final.key;
+
+    const providerKeyMode = provider.key || null; // "folder" | "file"
+    const keyType = final.key_type || providerKeyMode;
+
+    let file;
+
+    if (key && keyType) {
+      if (keyType === 'folder') {
+        file = `${key}/index.html`;
+      } else if (keyType === 'file') {
+        file = `${key}.html`;
+      } else {
+        return fail("Invalid key type: " + keyType);
+      }
+    } else {
+      file = final.file || 'index.html';
+    }
+
+    const fullPath = dir ? `${dir}/${file}` : file;
+
+    /* =========================
+       BUILD URL
+    ========================= */
     let url;
 
     if (isLocal) {
-      const dir = final.dir || 'g';
-      url = `/${dir}/${id}/index.html`;
-   } else {
-  const repo = final.repo || game.repo;
-  const tag = final.tag || 'main';
-  const cdn = final.cdn || 'jsdelivr';
+      url = `/${fullPath}`;
+    } else {
+      const repo = final.repo;
+      const tag  = final.tag || 'main';
+      const cdn  = final.cdn || 'jsdelivr';
 
-  const dir = final.dir || '';     // ✅ ADD THIS
-  const file = game.file;
+      if (!repo) return fail("Missing repo");
 
-  const fullPath = dir ? `${dir}/${file}` : file;
+      if (cdn === 'githack') {
+        url = `https://rawcdn.githack.com/${repo}/${tag}/${fullPath}`;
+      } else if (cdn === 'raw') {
+        url = `https://raw.githubusercontent.com/${repo}/refs/heads/${tag}/${fullPath}`;
+      } else {
+        url = `https://cdn.jsdelivr.net/gh/${repo}@${tag}/${fullPath}`;
+      }
 
-  if (cdn === 'githack') {
-    url = `https://rawcdn.githack.com/${repo}/${tag}/${fullPath}`;
-  } else if (cdn === 'raw') {
-    url = `https://raw.githubusercontent.com/${repo}/refs/heads/${tag}/${fullPath}`;
-  } else {
-    url = `https://cdn.jsdelivr.net/gh/${repo}@${tag}/${fullPath}`;
-  }
+      url = PROXY + encodeURIComponent(url);
+    }
 
-  url = PROXY + encodeURIComponent(url);
-}
-    iframe.src = url;
+    /* =========================
+       LOAD GAME
+    ========================= */
+    sessionStorage.setItem('last', JSON.stringify({
+      src: url,
+      name: final.name
+    }));
+
+    history.replaceState(null, '', location.pathname);
 
     if (label) label.textContent = final.name;
+
+    loadGame(url);
   })
   .catch(e => fail(e.message));
+
+/* =========================
+   LOAD GAME
+========================= */
+function loadGame(src) {
+  startLoad();
+
+  iframe.removeAttribute('srcdoc');
+  iframe.src = src;
+
+  iframe.addEventListener('load', () => {
+    finishLoad();
+
+    if (!hasCloak) {
+      applyMeta(src);
+    }
+
+  }, { once: true });
+}
+
+/* =========================
+   META EXTRACTION
+========================= */
+async function applyMeta(url) {
+  try {
+    const res = await fetch(url);
+    const html = await res.text();
+
+    // TITLE
+    const titleMatch = html.match(/<title>(.*?)<\/title>/i);
+    if (titleMatch && !hasCloak) {
+      document.title = titleMatch[1];
+    }
+
+    // ICON
+    const iconMatch =
+      html.match(/<link[^>]*rel=["']icon["'][^>]*href=["']([^"']+)["']/i) ||
+      html.match(/<link[^>]*rel=["']apple-touch-icon["'][^>]*href=["']([^"']+)["']/i);
+
+    if (iconMatch && !hasCloak) {
+      const baseMatch = html.match(/<base[^>]*href=["']([^"']+)["']/i);
+      const base = baseMatch ? baseMatch[1] : url;
+
+      const iconUrl = new URL(iconMatch[1], base).href;
+
+      let link = document.querySelector("link[rel='icon']");
+      if (!link) {
+        link = document.createElement("link");
+        link.rel = "icon";
+        document.head.appendChild(link);
+      }
+
+      link.href = iconUrl;
+    }
+
+  } catch (e) {
+    console.warn('Meta extraction failed:', e);
+  }
+}
+
+/* =========================
+   LOADING BAR
+========================= */
+function startLoad() {
+  if (!loadBar) return;
+  loadBar.style.transform = 'scaleX(.5)';
+}
+
+function finishLoad() {
+  if (!loadBar) return;
+  loadBar.style.transform = 'scaleX(1)';
+}
