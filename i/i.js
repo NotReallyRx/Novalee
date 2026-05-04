@@ -1,9 +1,8 @@
 // =========================
-// CLOAK DETECTION (delegated to main.js)
+// CLOAK DETECTION
 // =========================
 const tabData = JSON.parse(localStorage.getItem('tab') || '{}');
 const hasCloak = !!(tabData.title || tabData.icon);
-
 
 // =========================
 // ELEMENTS
@@ -15,9 +14,8 @@ const label   = document.getElementById('tb-label');
 const CDN_HTML = 'https://cdn.jsdelivr.net/gh/freebuisness/html@main';
 const PROXY = 'https://novalee.rxk.workers.dev/?url=';
 
-
 // =========================
-// SOURCE RESOLVE (UNCHANGED)
+// CDN RESOLVER
 // =========================
 function resolveCdn(cdn, repo, tag, file) {
   switch (cdn) {
@@ -31,39 +29,56 @@ function resolveCdn(cdn, repo, tag, file) {
   }
 }
 
+// =========================
+// PROXY WRAPPER (REMOTE ONLY)
+// =========================
 function useProxy(url) {
   return PROXY + encodeURIComponent(url);
 }
 
+// =========================
+// PARAMS
+// =========================
 const params = new URLSearchParams(window.location.search);
 
 let currentSrc = null;
 let currentKey = null;
 
-const gh   = params.get('gh');
+// NEW SYSTEM:
+// r = remote (proxy)
+// l = local (no proxy)
+
+const remoteRepo = params.get('r');
 const file = params.get('f');
 const tag  = params.get('tag') || 'main';
 const cdn  = params.get('cdn') || 'jsdelivr';
 
-if (gh && file) {
-  const raw = resolveCdn(cdn, gh, tag, file);
-  currentSrc = useProxy(raw);
-  currentKey = file.split('/').pop().replace('.html', '');
-} else {
-  for (const [prefix, key] of params.entries()) {
-    const raw = prefix === 'i'
-      ? `${CDN_HTML}/${key}.html`
-      : `/${prefix}/${key}`;
-
-    currentSrc = useProxy(raw);
-    currentKey = key;
-    break;
-  }
-}
-
+const localFile = params.get('l');
 
 // =========================
-// CACHE FALLBACK
+// ROUTING
+// =========================
+
+// -------------------------
+// REMOTE (PROXY ENABLED)
+// -------------------------
+if (remoteRepo && file) {
+  const raw = resolveCdn(cdn, remoteRepo, tag, file);
+  currentSrc = useProxy(raw);
+
+  currentKey = file.split('/').pop().replace(/\.[^/.]+$/, '');
+}
+
+// -------------------------
+// LOCAL (NO PROXY)
+// -------------------------
+else if (localFile) {
+  currentSrc = `/${localFile}`;
+  currentKey = localFile.split('/').pop().replace(/\.[^/.]+$/, '');
+}
+
+// =========================
+// FALLBACK CACHE
 // =========================
 if (!currentSrc) {
   try {
@@ -75,9 +90,8 @@ if (!currentSrc) {
   } catch {}
 }
 
-
 // =========================
-// LOAD GAME
+// INIT
 // =========================
 if (currentSrc) {
   sessionStorage.setItem('last', JSON.stringify({
@@ -91,11 +105,6 @@ if (currentSrc) {
     label.textContent = currentKey.replace(/-/g, ' ');
   }
 
-  // =========================================
-  // CLOAK RULE:
-  // If cloak exists → DO NOT override title/icon from iframe
-  // main.js handles everything
-  // =========================================
   if (!hasCloak) {
     applyMeta(currentSrc);
   }
@@ -103,9 +112,8 @@ if (currentSrc) {
   loadGame(currentSrc);
 }
 
-
 // =========================
-// IFRAME LOAD
+// LOAD GAME
 // =========================
 function loadGame(src) {
   startLoad();
@@ -116,7 +124,6 @@ function loadGame(src) {
   iframe.addEventListener('load', () => {
     finishLoad();
 
-    // Only apply meta again if NO cloak exists
     if (!hasCloak) {
       applyMeta(src);
     }
@@ -124,13 +131,12 @@ function loadGame(src) {
   }, { once: true });
 }
 
-
 // =========================
-// META EXTRACTION (ONLY WHEN NO CLOAK)
+// META EXTRACTION
 // =========================
-async function applyMeta(proxyUrl) {
+async function applyMeta(url) {
   try {
-    const res = await fetch(proxyUrl);
+    const res = await fetch(url);
     const html = await res.text();
 
     // TITLE
@@ -146,7 +152,7 @@ async function applyMeta(proxyUrl) {
 
     if (iconMatch && !hasCloak) {
       const baseMatch = html.match(/<base[^>]*href=["']([^"']+)["']/i);
-      const base = baseMatch ? baseMatch[1] : proxyUrl;
+      const base = baseMatch ? baseMatch[1] : url;
 
       const iconUrl = new URL(iconMatch[1], base).href;
 
@@ -164,7 +170,6 @@ async function applyMeta(proxyUrl) {
     console.warn('Meta extraction failed:', e);
   }
 }
-
 
 // =========================
 // LOADING UI
