@@ -122,8 +122,8 @@ fetch('/g/g.yml')
       ========================= */
       const filePath = joinPath(final.dir, final.file);
 
-      const href = final.prefix === 'gh'
-        ? `/i/?gh=${final.repo}`
+      const href = final.prefix === 'r'
+        ? `/i/?r=${final.repo}`
           + `&f=${encodeURIComponent(filePath)}`
           + `&tag=${encodeURIComponent(final.tag || 'main')}`
           + `&cdn=${encodeURIComponent(final.cdn || 'jsdelivr')}`
@@ -169,7 +169,7 @@ fetch('/g/g.yml')
 
           iconSrc = `https://cdn.jsdelivr.net/gh/${final.cover_repo}@${final.tag || 'main'}/${coverPath}`;
         }
-        else if (final.prefix === 'gh') {
+        else if (final.prefix === 'r') {
           iconSrc = `${CDN_COVERS}/${key}.png`;
         }
         else {
