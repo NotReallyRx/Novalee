@@ -6,6 +6,7 @@ providers:
     tag: main
     credit: gn-math
     cdn: jsdelivr
+    key: file
 
     cover_repo: freebuisness/covers
     cover_dir: 
