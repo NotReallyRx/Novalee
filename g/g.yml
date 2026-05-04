@@ -11,6 +11,12 @@ providers:
     cover_dir: 
     cover_ext: png
   
+  - name: local
+    prefix: l
+    dir: g
+    cover_dir: c
+    cover_ext: png
+  
   - name: C09
     repo: SoupcanUBG/C09
     dir: g
@@ -67,7 +73,5 @@ games:
     search:
       - pt
   - name: Slope
-    prefix: l
+    provider: local
     key: slope
-    file: g/slope/index.html
-    cover: slope.png
