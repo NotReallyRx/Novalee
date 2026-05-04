@@ -63,15 +63,6 @@ games:
     cover: c09ru.png
     search:
       - C09RU
-  - name: PolyTrack
-    repo: SoupcanUBG/pt
-    file: index.html
-    prefix: gh
-    tag: main
-    cdn: jsdelivr
-    cover: https://cdn2.steamgriddb.com/icon/db7a18d35df96354dcdacefdfb99d126/32/64x64.png
-    search:
-      - pt
   - name: Slope
     provider: local
     key: slope
