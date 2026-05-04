@@ -68,7 +68,7 @@ games:
     provider: gn-math
     key: "776"
   
-  - name: Doki Doki Literature Club+
+  - name: Doki Doki Literature Club Plus
     repo: SoupcanUBG/ddlc-plus
     file: index.html
     tag: main
