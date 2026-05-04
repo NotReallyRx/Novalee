@@ -69,5 +69,5 @@ games:
   - name: Slope
     prefix: l
     key: slope
-    file: slope/
+    file: g/slope/index.html
     cover: slope.png
