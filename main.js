@@ -1,4 +1,4 @@
-(function() {
+(function applyTabCloak() {
   try {
     var tabData = JSON.parse(localStorage.getItem('tab') || '{}');
     if (tabData.title) document.title = tabData.title;
