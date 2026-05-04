@@ -108,79 +108,78 @@ fetch('/g/g.yml')
     games.forEach(game => {
 
       /* =========================
-         MERGE PROVIDER + GAME
+         MERGE (GAME OVERRIDES PROVIDER)
       ========================= */
       const provider = providers[game.provider] || {};
-      const final = { ...provider, ...game };
+      const final = {
+        ...provider,   // defaults
+        ...game        // overrides
+      };
 
       const key = getKey(final);
+      const isLocal = final.prefix === 'l';
 
       /* =========================
-         FILE RESOLVE (FIXED ADDITION ONLY)
+         BUILD FILE PATH
       ========================= */
-      let filePath = '';
+      let filePath;
 
-      if (final.file) {
-        filePath = joinPath(final.dir || '', final.file);
-      } else if (final.key) {
-        filePath = joinPath(final.dir || '', final.key + '.html');
+      if (isLocal) {
+        const dir = final.dir || 'games';
+        filePath = `${dir}/${key}/index.html`;
+      } else {
+        filePath = joinPath(final.dir, final.file);
       }
 
       /* =========================
-         ROUTING (MINIMAL CHANGE)
+         BUILD HREF
       ========================= */
-      let href = '';
+      let href;
 
-      if (final.prefix === 'r') {
-        href =
-          `/i/?r=${final.repo}`
+      if (isLocal) {
+        href = `/${filePath}`;
+      } else if (final.prefix === 'r') {
+        href = `/i/?r=${final.repo}`
           + `&f=${encodeURIComponent(filePath)}`
           + `&tag=${encodeURIComponent(final.tag || 'main')}`
           + `&cdn=${encodeURIComponent(final.cdn || 'jsdelivr')}`;
-      }
-
-      else if (final.prefix === 'l') {
-        href = `/${filePath}`;
-      }
-
-      else {
-        href = '#';
+      } else {
+        href = `/i/?${final.prefix}=${key}`;
       }
 
       /* =========================
-         COVER (ONLY FIXED FALLBACKS)
+         COVER RESOLUTION (WITH OVERRIDES)
       ========================= */
-      let iconSrc = null;
-
-      const coverDir = final.cover_dir || '';
-      const coverExt = final.cover_ext || 'png';
+      let iconSrc;
 
       if (final.cover) {
 
         if (/^https?:\/\//i.test(final.cover)) {
           iconSrc = final.cover;
-        }
+        } else {
+          const coverPath = joinPath(final.cover_dir, final.cover);
 
-        else if (/\.[a-z0-9]+$/i.test(final.cover)) {
-          iconSrc =
-            '/' + joinPath(coverDir, final.cover);
-        }
-
-        else {
-          iconSrc =
-            '/' +
-            joinPath(
-              coverDir,
-              final.cover + '.' + coverExt
-            );
+          iconSrc = isLocal
+            ? `/${coverPath}`
+            : `https://cdn.jsdelivr.net/gh/${final.cover_repo}@${final.tag || 'main'}/${coverPath}`;
         }
 
       } else {
 
-        if (final.cover_repo) {
-          iconSrc =
-            `https://cdn.jsdelivr.net/gh/${final.cover_repo}@${final.tag || 'main'}/`
-            + joinPath(coverDir, key + '.' + coverExt);
+        if (isLocal) {
+          const coverDir = final.cover_dir || 'covers';
+          const ext = final.cover_ext || 'png';
+
+          iconSrc = `/${coverDir}/${key}.${ext}`;
+        }
+
+        else if (final.cover_repo) {
+          const coverPath = joinPath(
+            final.cover_dir,
+            key + '.' + (final.cover_ext || 'png')
+          );
+
+          iconSrc = `https://cdn.jsdelivr.net/gh/${final.cover_repo}@${final.tag || 'main'}/${coverPath}`;
         }
 
         else if (final.prefix === 'r') {
@@ -193,7 +192,7 @@ fetch('/g/g.yml')
       }
 
       /* =========================
-         CARD
+         CREATE CARD
       ========================= */
       const card = document.createElement('div');
       card.className = 'game-card';
@@ -240,7 +239,7 @@ fetch('/g/g.yml')
     });
 
     /* =========================
-       SEARCH (UNCHANGED)
+       SEARCH
     ========================= */
     const searchBar = document.getElementById('search-bar');
 
