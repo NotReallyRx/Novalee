@@ -5,7 +5,12 @@ const label = document.getElementById('tb-label');
 const PROXY = 'https://novalee.rxk.workers.dev/?url=';
 
 /* =========================
-   CLOAK DETECTION
+   SAFETY LOGGING
+========================= */
+console.log("[i.js] booted:", location.href);
+
+/* =========================
+   CLOAK
 ========================= */
 const tabData = JSON.parse(localStorage.getItem('tab') || '{}');
 const hasCloak = !!(tabData.title || tabData.icon);
@@ -18,7 +23,7 @@ function useProxy(url) {
 }
 
 function startLoad() {
-  if (loadBar) loadBar.style.transform = 'scaleX(.5)';
+  if (loadBar) loadBar.style.transform = 'scaleX(.4)';
 }
 
 function finishLoad() {
@@ -31,162 +36,185 @@ function finishLoad() {
 const params = new URLSearchParams(location.search);
 const gameId = params.get('g');
 
-let currentSrc = null;
-let currentKey = null;
+console.log("[i.js] gameId:", gameId);
 
-/* =========================
-   FALLBACK SESSION
-========================= */
-function loadFallback() {
-  try {
-    const saved = JSON.parse(sessionStorage.getItem('last'));
-    if (saved) {
-      currentSrc = saved.src;
-      currentKey = saved.key;
-    }
-  } catch {}
+if (!gameId) {
+  fail("Missing ?g= parameter");
 }
 
 /* =========================
-   BOOT
+   FAIL STATE (VISIBLE)
 ========================= */
-if (!gameId) {
-  loadFallback();
-  if (currentSrc) loadGame(currentSrc);
-} else {
+function fail(msg) {
+  console.error("[i.js] FAIL:", msg);
+  document.body.innerHTML = `
+    <div style="color:white;font-family:sans-serif;padding:20px">
+      <h2>Game Loader Error</h2>
+      <p>${msg}</p>
+    </div>
+  `;
+}
 
-  fetch('/g/g.yml')
-    .then(res => res.text())
-    .then(text => {
-      const data = jsyaml.load(text);
+/* =========================
+   LOAD YAML
+========================= */
+fetch('/g/g.yml')
+  .then(res => {
+    console.log("[i.js] YAML fetch status:", res.status);
+    return res.text();
+  })
+  .then(text => {
 
-      const providers = {};
-      (data.providers || []).forEach(p => {
-        providers[p.name] = p;
-      });
+    if (!window.jsyaml) {
+      fail("jsyaml is not loaded");
+      return;
+    }
 
-      const games = data.games || [];
+    let data;
 
-      /* =========================
-         FIND GAME
-      ========================= */
-      const game =
-        games.find(g =>
-          g.key === gameId ||
-          g.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === gameId
-        );
+    try {
+      data = jsyaml.load(text);
+    } catch (e) {
+      fail("YAML parse error: " + e.message);
+      return;
+    }
 
-      if (!game) {
-        document.body.innerHTML = "Game not found: " + gameId;
+    console.log("[i.js] YAML loaded OK");
+
+    const providers = {};
+    (data.providers || []).forEach(p => {
+      providers[p.name] = p;
+    });
+
+    const games = data.games || [];
+
+    console.log("[i.js] games:", games.length);
+
+    const game =
+      games.find(g =>
+        g.key === gameId ||
+        g.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === gameId
+      );
+
+    if (!game) {
+      fail("Game not found: " + gameId);
+      return;
+    }
+
+    const provider = providers[game.provider] || {};
+    const final = { ...provider, ...game };
+
+    const key =
+      final.key ||
+      game.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+    const isLocal = final.prefix === 'l';
+
+    console.log("[i.js] resolved game:", {
+      name: game.name,
+      key,
+      isLocal,
+      provider: game.provider
+    });
+
+    /* =========================
+       BUILD URL
+    ========================= */
+    let rawUrl;
+
+    if (isLocal) {
+      const dir = final.dir || 'g';
+      rawUrl = `/${dir}/${key}/index.html`;
+    } else {
+      const repo = final.repo || game.repo;
+      const tag = final.tag || 'main';
+      const file = final.file || 'index.html';
+      const cdn = final.cdn || 'jsdelivr';
+
+      if (!repo) {
+        fail("Missing repo for remote game: " + key);
         return;
       }
 
-      const provider = providers[game.provider] || {};
-      const final = { ...provider, ...game };
-
-      const key =
-        final.key ||
-        game.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-
-      currentKey = key;
-
-      const isLocal = final.prefix === 'l';
-
-      /* =========================
-         RESOLVE URL
-      ========================= */
-      let rawUrl;
-
-      if (isLocal) {
-        const dir = final.dir || 'g';
-        rawUrl = `/${dir}/${key}/index.html`;
+      if (cdn === 'githack') {
+        rawUrl = `https://rawcdn.githack.com/${repo}/${tag}/${file}`;
+      } else if (cdn === 'raw') {
+        rawUrl = `https://raw.githubusercontent.com/${repo}/refs/heads/${tag}/${file}`;
       } else {
-        const repo = final.repo || game.repo;
-        const tag = final.tag || 'main';
-        const file = final.file || 'index.html';
-        const cdn = final.cdn || 'jsdelivr';
-
-        if (!repo) {
-          document.body.innerHTML = "Missing repo for remote game: " + key;
-          return;
-        }
-
-        if (cdn === 'githack') {
-          rawUrl = `https://rawcdn.githack.com/${repo}/${tag}/${file}`;
-        } else if (cdn === 'raw') {
-          rawUrl = `https://raw.githubusercontent.com/${repo}/refs/heads/${tag}/${file}`;
-        } else {
-          rawUrl = `https://cdn.jsdelivr.net/gh/${repo}@${tag}/${file}`;
-        }
+        rawUrl = `https://cdn.jsdelivr.net/gh/${repo}@${tag}/${file}`;
       }
+    }
 
-      /* =========================
-         APPLY PROXY ONLY FOR REMOTE
-      ========================= */
-      currentSrc = isLocal ? rawUrl : useProxy(rawUrl);
+    console.log("[i.js] rawUrl:", rawUrl);
 
-      /* =========================
-         SAVE SESSION
-      ========================= */
-      sessionStorage.setItem('last', JSON.stringify({
-        src: currentSrc,
-        key: currentKey
-      }));
+    const finalUrl = isLocal ? rawUrl : useProxy(rawUrl);
 
-      history.replaceState(null, '', location.pathname);
+    console.log("[i.js] finalUrl:", finalUrl);
 
-      /* =========================
-         LABEL
-      ========================= */
-      if (label) {
-        label.textContent = currentKey.replace(/-/g, ' ');
-      }
+    /* =========================
+       LABEL
+    ========================= */
+    if (label) {
+      label.textContent = key.replace(/-/g, ' ');
+    }
 
-      loadGame(currentSrc);
-    });
-}
+    /* =========================
+       LOAD GAME
+    ========================= */
+    loadGame(finalUrl);
+
+  })
+  .catch(err => {
+    fail("Fetch failed: " + err.message);
+  });
 
 /* =========================
    LOAD GAME
 ========================= */
 function loadGame(src) {
+  if (!iframe) {
+    fail("Missing iframe element");
+    return;
+  }
+
+  console.log("[i.js] loading iframe:", src);
+
   startLoad();
 
-  iframe.removeAttribute('srcdoc');
   iframe.src = src;
 
-  iframe.addEventListener('load', () => {
+  iframe.onload = () => {
+    console.log("[i.js] iframe loaded");
     finishLoad();
 
     if (!hasCloak) {
       applyMeta(src);
     }
-
-  }, { once: true });
+  };
 }
 
 /* =========================
-   META EXTRACTION
+   META
 ========================= */
 async function applyMeta(url) {
   try {
     const res = await fetch(url);
     const html = await res.text();
 
-    const titleMatch = html.match(/<title>(.*?)<\/title>/i);
-    if (titleMatch && !hasCloak) {
-      document.title = titleMatch[1];
+    const title = html.match(/<title>(.*?)<\/title>/i);
+    if (title && !hasCloak) {
+      document.title = title[1];
     }
 
-    const iconMatch =
+    const icon =
       html.match(/<link[^>]*rel=["']icon["'][^>]*href=["']([^"']+)["']/i) ||
       html.match(/<link[^>]*rel=["']apple-touch-icon["'][^>]*href=["']([^"']+)["']/i);
 
-    if (iconMatch && !hasCloak) {
+    if (icon && !hasCloak) {
       const baseMatch = html.match(/<base[^>]*href=["']([^"']+)["']/i);
       const base = baseMatch ? baseMatch[1] : url;
 
-      const iconUrl = new URL(iconMatch[1], base).href;
+      const iconUrl = new URL(icon[1], base).href;
 
       let link = document.querySelector("link[rel='icon']");
       if (!link) {
@@ -199,6 +227,6 @@ async function applyMeta(url) {
     }
 
   } catch (e) {
-    console.warn('Meta extraction failed:', e);
+    console.warn("[i.js] meta failed:", e);
   }
 }
