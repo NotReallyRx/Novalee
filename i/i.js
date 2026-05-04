@@ -15,10 +15,15 @@ const hasCloak = !!(tab.title || tab.icon);
 ========================= */
 function slugify(name) {
   return encodeURIComponent(
-    name.trim().toLowerCase().replace(/\s+/g, '-')
+    name
+      .toLowerCase()
+      .trim()
+      .replace(/['":]/g, '')      // remove apostrophes + quotes + colons
+      .replace(/[^a-z0-9\s-]/g, '') // remove other punctuation
+      .replace(/\s+/g, '-')       // spaces → dash
+      .replace(/-+/g, '-')        // collapse multiple dashes
   );
 }
-
 const gameId = decodeURIComponent(new URLSearchParams(location.search).get('g') || '');
 
 if (!gameId) fail("Missing ?g=");
