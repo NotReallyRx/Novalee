@@ -75,23 +75,26 @@ fetch('/g/g.yml')
     if (isLocal) {
       const dir = final.dir || 'g';
       url = `/${dir}/${id}/index.html`;
-    } else {
-      const repo = final.repo || game.repo;
-      const tag = final.tag || 'main';
-      const file = final.file || 'index.html';
-      const cdn = final.cdn || 'jsdelivr';
+   } else {
+  const repo = final.repo || game.repo;
+  const tag = final.tag || 'main';
+  const cdn = final.cdn || 'jsdelivr';
 
-      if (cdn === 'githack') {
-        url = `https://rawcdn.githack.com/${repo}/${tag}/${file}`;
-      } else if (cdn === 'raw') {
-        url = `https://raw.githubusercontent.com/${repo}/refs/heads/${tag}/${file}`;
-      } else {
-        url = `https://cdn.jsdelivr.net/gh/${repo}@${tag}/${file}`;
-      }
+  const dir = final.dir || '';     // ✅ ADD THIS
+  const file = game.file;
 
-      url = PROXY + encodeURIComponent(url);
-    }
+  const fullPath = dir ? `${dir}/${file}` : file;
 
+  if (cdn === 'githack') {
+    url = `https://rawcdn.githack.com/${repo}/${tag}/${fullPath}`;
+  } else if (cdn === 'raw') {
+    url = `https://raw.githubusercontent.com/${repo}/refs/heads/${tag}/${fullPath}`;
+  } else {
+    url = `https://cdn.jsdelivr.net/gh/${repo}@${tag}/${fullPath}`;
+  }
+
+  url = PROXY + encodeURIComponent(url);
+}
     iframe.src = url;
 
     if (label) label.textContent = final.name;
