@@ -1,4 +1,4 @@
-(function applyTabCloak() {
+document.addEventListener('DOMContentLoaded', function () {
   try {
     var tabData = JSON.parse(localStorage.getItem('tab') || '{}');
 
@@ -15,7 +15,12 @@
         document.head.appendChild(link);
       }
 
-      link.href = tabData.icon + '?v=' + Date.now();
+      // IMPORTANT: avoid breaking base64 icons
+      if (tabData.icon.startsWith('data:')) {
+        link.href = tabData.icon;
+      } else {
+        link.href = tabData.icon + '?v=' + Date.now();
+      }
     }
   } catch (e) {}
-})();
+});
