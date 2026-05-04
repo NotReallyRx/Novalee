@@ -186,7 +186,7 @@ function reloadFrame() {
   if (!currentSrc) return;
   loadGame(currentSrc);
 }
-
+forceCloak();
 function toggleFullscreen() {
   const el = document.getElementById('frame-outer');
 
