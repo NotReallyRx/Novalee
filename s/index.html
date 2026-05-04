@@ -125,6 +125,21 @@
 
     #status.ok  { color: #4a8a4a; }
     #status.err { color: #8a4a4a; }
+    html, body {
+  height: 100%;
+}
+
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#content {
+  flex: 1;
+  padding: 32px;
+  overflow-y: auto;
+}
   </style>
 </head>
 
