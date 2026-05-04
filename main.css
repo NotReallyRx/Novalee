@@ -248,3 +248,15 @@ html, body {
   background: var(--raised);
   box-shadow: 0 0 0 2px rgba(255,255,255,0.04);
 }
+.card-name {
+  font-family: 'Syne', sans-serif;
+  font-size: .76rem;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: .02em;
+
+  white-space: nowrap;      /* keep 1 line */
+  overflow: hidden;         /* hide overflow */
+  text-overflow: ellipsis;  /* show ... */
+  width: 100%;              /* IMPORTANT */
+}
