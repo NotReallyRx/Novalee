@@ -63,6 +63,6 @@ games:
     cover: c09ru.png
     search:
       - C09RU
-  - name: Slope
-    provider: local
-    key: slope
+  - name: YOMI Hustle
+    provider: gn-math
+    key: 776
