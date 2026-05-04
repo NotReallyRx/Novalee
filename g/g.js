@@ -106,13 +106,14 @@ function render(games, providers) {
     const provider = providers[game.provider] || {};
     const final = { ...provider, ...game };
 
-    const id = slugify(final.name);
+    const id = final.key || slugify(final.name);
+    const urlName = slugify(final.name);
     const isLocal = final.prefix === 'l';
 
     /* =========================
        /i/?g=NAME-SLUG
     ========================= */
-    const href = `/i/?g=${id}`;
+    const href = `/i/?g=${urlName}`;
 
     /* =========================
        COVER
