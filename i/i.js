@@ -1,3 +1,6 @@
+// =========================
+// CLOAK
+// =========================
 function forceCloak() {
   try {
     const tabData = JSON.parse(localStorage.getItem('tab') || '{}');
@@ -5,7 +8,7 @@ function forceCloak() {
     if (!tabData.title && !tabData.icon) return;
 
     // TITLE
-    if (tabData.title && document.title !== tabData.title) {
+    if (tabData.title) {
       document.title = tabData.title;
     }
 
@@ -18,16 +21,24 @@ function forceCloak() {
         document.head.appendChild(link);
       }
 
-      const current = link.href.split('?')[0];
-      if (current !== tabData.icon) {
-        link.href = tabData.icon + '?v=' + Date.now();
-      }
+      link.href = tabData.icon + '?v=' + Date.now();
     }
 
   } catch {}
 }
 
+// detect once
+const hasCloak = !!localStorage.getItem('tab');
 
+// OPTIONAL: keep it enforced only if cloak exists
+if (hasCloak) {
+  setInterval(forceCloak, 1000);
+}
+
+
+// =========================
+// ELEMENTS
+// =========================
 const iframe  = document.getElementById('game-iframe');
 const loadBar = document.getElementById('load-bar');
 const label   = document.getElementById('tb-label');
@@ -35,9 +46,10 @@ const label   = document.getElementById('tb-label');
 const CDN_HTML = 'https://cdn.jsdelivr.net/gh/freebuisness/html@main';
 const PROXY = 'https://novalee.rxk.workers.dev/?url=';
 
-/* =========================
-   CDN RESOLVER
-========================= */
+
+// =========================
+// CDN RESOLVER
+// =========================
 function resolveCdn(cdn, repo, tag, file) {
   switch (cdn) {
     case 'githack':
@@ -54,14 +66,19 @@ function useProxy(url) {
   return PROXY + encodeURIComponent(url);
 }
 
+
+// =========================
+// PARAMS
+// =========================
 const params = new URLSearchParams(window.location.search);
 
 let currentSrc = null;
 let currentKey = null;
 
-/* =========================
-   SOURCE RESOLVE
-========================= */
+
+// =========================
+// SOURCE RESOLVE
+// =========================
 const gh   = params.get('gh');
 const file = params.get('f');
 const tag  = params.get('tag') || 'main';
@@ -83,9 +100,10 @@ if (gh && file) {
   }
 }
 
-/* =========================
-   FALLBACK CACHE
-========================= */
+
+// =========================
+// FALLBACK CACHE
+// =========================
 if (!currentSrc) {
   try {
     const saved = JSON.parse(sessionStorage.getItem('last'));
@@ -96,9 +114,10 @@ if (!currentSrc) {
   } catch {}
 }
 
-/* =========================
-   LOAD GAME
-========================= */
+
+// =========================
+// LOAD GAME
+// =========================
 if (currentSrc) {
   sessionStorage.setItem('last', JSON.stringify({
     src: currentSrc,
@@ -107,39 +126,60 @@ if (currentSrc) {
 
   history.replaceState(null, '', window.location.pathname);
 
-  label.textContent = currentKey.replace(/-/g, ' ');
+  if (label && currentKey) {
+    label.textContent = currentKey.replace(/-/g, ' ');
+  }
 
-  applyMeta(currentSrc);
+  // ONLY apply metadata if NO cloak
+  if (!hasCloak) {
+    applyMeta(currentSrc);
+  }
+
   loadGame(currentSrc);
+
+  // apply cloak once at start
+  if (hasCloak) {
+    forceCloak();
+  }
 }
 
-/* =========================
-   LOAD INTO IFRAME (REAL URL)
-========================= */
+
+// =========================
+// LOAD INTO IFRAME
+// =========================
 function loadGame(src) {
   startLoad();
 
   iframe.removeAttribute('srcdoc');
   iframe.src = src;
 
-  iframe.addEventListener('load', finishLoad, { once: true });
+  iframe.addEventListener('load', () => {
+    finishLoad();
+
+    // reapply cloak after load (safe)
+    if (hasCloak) {
+      forceCloak();
+    }
+
+  }, { once: true });
 }
 
-/* =========================
-   TITLE + ICON EXTRACTION
-========================= */
+
+// =========================
+// META EXTRACTION
+// =========================
 async function applyMeta(proxyUrl) {
   try {
     const res = await fetch(proxyUrl);
     const html = await res.text();
 
-    // --- TITLE ---
+    // TITLE
     const titleMatch = html.match(/<title>(.*?)<\/title>/i);
     if (titleMatch) {
       document.title = titleMatch[1];
     }
 
-    // --- ICON ---
+    // ICON
     const iconMatch =
       html.match(/<link[^>]*rel=["']icon["'][^>]*href=["']([^"']+)["']/i) ||
       html.match(/<link[^>]*rel=["']apple-touch-icon["'][^>]*href=["']([^"']+)["']/i);
@@ -165,16 +205,21 @@ async function applyMeta(proxyUrl) {
   }
 }
 
-/* =========================
-   UI HELPERS
-========================= */
+
+// =========================
+// UI HELPERS
+// =========================
 function startLoad() {
+  if (!loadBar) return;
+
   loadBar.style.transition = 'transform .35s ease';
   loadBar.style.transform  = 'scaleX(.45)';
   setTimeout(() => loadBar.style.transform = 'scaleX(.75)', 300);
 }
 
 function finishLoad() {
+  if (!loadBar) return;
+
   loadBar.style.transform = 'scaleX(1)';
   setTimeout(() => {
     loadBar.style.transition = 'none';
@@ -182,11 +227,15 @@ function finishLoad() {
   }, 380);
 }
 
+
+// =========================
+// CONTROLS
+// =========================
 function reloadFrame() {
   if (!currentSrc) return;
   loadGame(currentSrc);
 }
-forceCloak();
+
 function toggleFullscreen() {
   const el = document.getElementById('frame-outer');
 
@@ -203,9 +252,10 @@ function popOut() {
   if (currentSrc) window.open(currentSrc, '_blank');
 }
 
-/* =========================
-   HOTKEYS
-========================= */
+
+// =========================
+// HOTKEYS
+// =========================
 document.addEventListener('keydown', e => {
   if (e.key === 'F11') {
     e.preventDefault();
