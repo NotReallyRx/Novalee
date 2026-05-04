@@ -1,39 +1,8 @@
 // =========================
-// CLOAK
+// CLOAK DETECTION (delegated to main.js)
 // =========================
-function forceCloak() {
-  try {
-    const tabData = JSON.parse(localStorage.getItem('tab') || '{}');
-
-    if (!tabData.title && !tabData.icon) return;
-
-    // TITLE
-    if (tabData.title) {
-      document.title = tabData.title;
-    }
-
-    // ICON
-    if (tabData.icon) {
-      let link = document.querySelector("link[rel*='icon']");
-      if (!link) {
-        link = document.createElement('link');
-        link.rel = 'icon';
-        document.head.appendChild(link);
-      }
-
-      link.href = tabData.icon + '?v=' + Date.now();
-    }
-
-  } catch {}
-}
-
-// detect once
-const hasCloak = !!localStorage.getItem('tab');
-
-// OPTIONAL: keep it enforced only if cloak exists
-if (hasCloak) {
-  setInterval(forceCloak, 1000);
-}
+const tabData = JSON.parse(localStorage.getItem('tab') || '{}');
+const hasCloak = !!(tabData.title || tabData.icon);
 
 
 // =========================
@@ -48,7 +17,7 @@ const PROXY = 'https://novalee.rxk.workers.dev/?url=';
 
 
 // =========================
-// CDN RESOLVER
+// SOURCE RESOLVE (UNCHANGED)
 // =========================
 function resolveCdn(cdn, repo, tag, file) {
   switch (cdn) {
@@ -66,19 +35,11 @@ function useProxy(url) {
   return PROXY + encodeURIComponent(url);
 }
 
-
-// =========================
-// PARAMS
-// =========================
 const params = new URLSearchParams(window.location.search);
 
 let currentSrc = null;
 let currentKey = null;
 
-
-// =========================
-// SOURCE RESOLVE
-// =========================
 const gh   = params.get('gh');
 const file = params.get('f');
 const tag  = params.get('tag') || 'main';
@@ -102,7 +63,7 @@ if (gh && file) {
 
 
 // =========================
-// FALLBACK CACHE
+// CACHE FALLBACK
 // =========================
 if (!currentSrc) {
   try {
@@ -130,22 +91,21 @@ if (currentSrc) {
     label.textContent = currentKey.replace(/-/g, ' ');
   }
 
-  // ONLY apply metadata if NO cloak
+  // =========================================
+  // CLOAK RULE:
+  // If cloak exists → DO NOT override title/icon from iframe
+  // main.js handles everything
+  // =========================================
   if (!hasCloak) {
     applyMeta(currentSrc);
   }
 
   loadGame(currentSrc);
-
-  // apply cloak once at start
-  if (hasCloak) {
-    forceCloak();
-  }
 }
 
 
 // =========================
-// LOAD INTO IFRAME
+// IFRAME LOAD
 // =========================
 function loadGame(src) {
   startLoad();
@@ -156,9 +116,9 @@ function loadGame(src) {
   iframe.addEventListener('load', () => {
     finishLoad();
 
-    // reapply cloak after load (safe)
-    if (hasCloak) {
-      forceCloak();
+    // Only apply meta again if NO cloak exists
+    if (!hasCloak) {
+      applyMeta(src);
     }
 
   }, { once: true });
@@ -166,7 +126,7 @@ function loadGame(src) {
 
 
 // =========================
-// META EXTRACTION
+// META EXTRACTION (ONLY WHEN NO CLOAK)
 // =========================
 async function applyMeta(proxyUrl) {
   try {
@@ -175,7 +135,7 @@ async function applyMeta(proxyUrl) {
 
     // TITLE
     const titleMatch = html.match(/<title>(.*?)<\/title>/i);
-    if (titleMatch) {
+    if (titleMatch && !hasCloak) {
       document.title = titleMatch[1];
     }
 
@@ -184,7 +144,7 @@ async function applyMeta(proxyUrl) {
       html.match(/<link[^>]*rel=["']icon["'][^>]*href=["']([^"']+)["']/i) ||
       html.match(/<link[^>]*rel=["']apple-touch-icon["'][^>]*href=["']([^"']+)["']/i);
 
-    if (iconMatch) {
+    if (iconMatch && !hasCloak) {
       const baseMatch = html.match(/<base[^>]*href=["']([^"']+)["']/i);
       const base = baseMatch ? baseMatch[1] : proxyUrl;
 
@@ -207,63 +167,14 @@ async function applyMeta(proxyUrl) {
 
 
 // =========================
-// UI HELPERS
+// LOADING UI
 // =========================
 function startLoad() {
   if (!loadBar) return;
-
-  loadBar.style.transition = 'transform .35s ease';
-  loadBar.style.transform  = 'scaleX(.45)';
-  setTimeout(() => loadBar.style.transform = 'scaleX(.75)', 300);
+  loadBar.style.transform = 'scaleX(.5)';
 }
 
 function finishLoad() {
   if (!loadBar) return;
-
   loadBar.style.transform = 'scaleX(1)';
-  setTimeout(() => {
-    loadBar.style.transition = 'none';
-    loadBar.style.transform  = 'scaleX(0)';
-  }, 380);
 }
-
-
-// =========================
-// CONTROLS
-// =========================
-function reloadFrame() {
-  if (!currentSrc) return;
-  loadGame(currentSrc);
-}
-
-function toggleFullscreen() {
-  const el = document.getElementById('frame-outer');
-
-  if (!document.fullscreenElement) {
-    el.requestFullscreen().catch(() =>
-      document.documentElement.requestFullscreen()
-    );
-  } else {
-    document.exitFullscreen();
-  }
-}
-
-function popOut() {
-  if (currentSrc) window.open(currentSrc, '_blank');
-}
-
-
-// =========================
-// HOTKEYS
-// =========================
-document.addEventListener('keydown', e => {
-  if (e.key === 'F11') {
-    e.preventDefault();
-    toggleFullscreen();
-  }
-
-  if (e.ctrlKey && e.key === 'r') {
-    e.preventDefault();
-    reloadFrame();
-  }
-});
