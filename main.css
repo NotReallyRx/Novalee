@@ -260,3 +260,10 @@ html, body {
   text-overflow: ellipsis;  /* show ... */
   width: 100%;              /* IMPORTANT */
 }
+.card-footer {
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column; /* 👈 stack vertically */
+  align-items: flex-start;
+  gap: 3px;
+}
