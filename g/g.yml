@@ -2,7 +2,7 @@ providers:
   - name: gn-math
     repo: freebuisness/html
     dir: 
-    prefix: gh
+    prefix: r
     tag: main
     credit: gn-math
     cdn: jsdelivr
@@ -14,7 +14,7 @@ providers:
   - name: C09
     repo: SoupcanUBG/C09
     dir: g
-    prefix: gh
+    prefix: r
     tag: main
     credit: mysticful
     cdn: jsdelivr
@@ -30,7 +30,6 @@ games:
   - name: Doki Doki Literature Club
     repo: SoupcanUBG/web-port
     file: ddlc/index.html
-    prefix: gh
     tag: main
     credit: mysticful
     cdn: jsdelivr
@@ -68,7 +67,7 @@ games:
     search:
       - pt
   - name: Slope
-    prefix: g
+    prefix: l
     key: slope
     file: slope/
     cover: slope.png
