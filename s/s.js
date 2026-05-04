@@ -24,6 +24,10 @@ function saveTabData(d) {
   localStorage.setItem('tab', JSON.stringify(d));
 }
 
+
+// =========================
+// FIXED FAVICON HANDLER
+// =========================
 function setFavicon(url) {
   var link = document.querySelector("link[rel*='icon']");
 
@@ -33,10 +37,24 @@ function setFavicon(url) {
     document.head.appendChild(link);
   }
 
-  // force refresh
-  link.href = url + '?v=' + Date.now();
+  // base64 / data URL support
+  if (url.startsWith('data:')) {
+
+    // improve compatibility
+    if (url.startsWith('data:image/png')) link.type = 'image/png';
+    else if (url.startsWith('data:image/svg')) link.type = 'image/svg+xml';
+    else if (url.startsWith('data:image/x-icon')) link.type = 'image/x-icon';
+
+    link.href = url; // no cache busting
+  } else {
+    link.href = url + '?v=' + Date.now(); // normal URLs
+  }
 }
 
+
+// =========================
+// TITLE + ICON APPLY
+// =========================
 function applyTitle() {
   var input = document.getElementById('title-input');
   if (!input) return;
@@ -75,6 +93,10 @@ function applyIcon() {
   status('favicon saved');
 }
 
+
+// =========================
+// PRESET CLOAKS
+// =========================
 var CLOAKS = {
   search:    { title: 'Google',                     icon: './images/cloaks/Google Search.ico' },
   drive:     { title: 'My Drive - Google Drive',    icon: './images/cloaks/Google Drive.ico' },
@@ -123,6 +145,10 @@ function applyCloak() {
   status('cloak applied — ' + preset.title);
 }
 
+
+// =========================
+// RESET
+// =========================
 function resetTab() {
   localStorage.removeItem('tab');
 
@@ -136,7 +162,10 @@ function resetTab() {
   status('tab data removed');
 }
 
-/* INIT AFTER DOM */
+
+// =========================
+// INIT AFTER DOM
+// =========================
 document.addEventListener('DOMContentLoaded', function () {
   var d = getTabData();
 
@@ -150,7 +179,14 @@ document.addEventListener('DOMContentLoaded', function () {
     if (i) i.value = d.icon;
   }
 
-  /* Cloaker */
+  // apply saved favicon immediately (fixes reload issue)
+  if (d.icon) {
+    setFavicon(d.icon);
+  }
+
+  // =========================
+  // CLOAKER BUTTON
+  // =========================
   var btn = document.getElementById('cloaker-button');
   if (!btn) return;
 
