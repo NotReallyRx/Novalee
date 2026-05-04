@@ -28,7 +28,7 @@ function getKey(final) {
 }
 
 /* =========================
-   LEVENSHTEIN SEARCH
+   SEARCH
 ========================= */
 function levenshtein(a, b) {
   a = a.toLowerCase();
@@ -56,19 +56,6 @@ function levenshtein(a, b) {
   return matrix[b.length][a.length];
 }
 
-function levenshteinScore(query, text) {
-  query = query.toLowerCase().trim();
-  text = text.toLowerCase().trim();
-
-  if (!query) return 1;
-  if (text === query) return 1;
-
-  const dist = levenshtein(query, text);
-  const maxLen = Math.max(query.length, text.length);
-
-  return 1 - dist / maxLen;
-}
-
 function scoreMatch(query, text) {
   query = query.toLowerCase().trim();
   text = text.toLowerCase();
@@ -76,194 +63,172 @@ function scoreMatch(query, text) {
   if (!query) return 1;
 
   const tokens = text.split(/\s+/);
-  let bestScore = 0;
+  let best = 0;
 
-  for (const token of tokens) {
-    const lev = levenshteinScore(query, token);
-    const exact = token === query ? 1 : 0;
-    const includes = token.includes(query) ? 0.9 : 0;
+  for (const t of tokens) {
+    const dist = levenshtein(query, t);
+    const max = Math.max(query.length, t.length);
+    const score = 1 - dist / max;
 
-    const score = Math.max(lev, exact, includes);
-    if (score > bestScore) bestScore = score;
+    const finalScore = Math.max(
+      score,
+      t.includes(query) ? 0.9 : 0,
+      t === query ? 1 : 0
+    );
+
+    best = Math.max(best, finalScore);
   }
 
-  return bestScore;
+  return best;
 }
 
 /* =========================
-   LOAD GAME DATA
+   LOAD YAML
 ========================= */
 fetch('/g/g.yml')
   .then(res => res.text())
   .then(text => {
-    const yamlData = jsyaml.load(text);
+    const data = jsyaml.load(text);
 
     const providers = {};
-    (yamlData.providers || []).forEach(p => {
+    (data.providers || []).forEach(p => {
       providers[p.name] = p;
     });
 
-    const games = yamlData.games || [];
+    const games = data.games || [];
 
-    games.forEach(game => {
+    renderGames(games, providers);
+    setupSearch();
+  });
 
-      /* =========================
-         MERGE PROVIDER + OVERRIDES
-      ========================= */
-      const provider = providers[game.provider] || {};
-      const final = { ...provider, ...game };
+/* =========================
+   RENDER GAMES
+========================= */
+function renderGames(games, providers) {
 
-      const key = getKey(final);
-      const isLocal = final.prefix === 'l';
+  games.forEach(game => {
 
-      /* =========================
-         RESOLVE FILE PATH
-      ========================= */
-      let filePath;
+    const provider = providers[game.provider] || {};
+    const final = { ...provider, ...game };
 
-      if (isLocal) {
-        const dir = final.dir || 'games';
-        filePath = `${dir}/${key}/index.html`;
-      } else {
-        filePath = joinPath(final.dir, final.file);
-      }
-
-      /* =========================
-         BUILD HREF (/i/ SYSTEM ONLY)
-      ========================= */
-      let href;
-
-      if (final.prefix === 'r') {
-        href =
-          `/i/?r=${final.repo}` +
-          `&f=${encodeURIComponent(filePath)}` +
-          `&tag=${encodeURIComponent(final.tag || 'main')}` +
-          `&cdn=${encodeURIComponent(final.cdn || 'jsdelivr')}`;
-      } else {
-        href = `/i/?g=${key}`;
-      }
-
-      /* =========================
-         COVER RESOLUTION
-      ========================= */
-      let iconSrc;
-
-      if (final.cover) {
-
-        if (/^https?:\/\//i.test(final.cover)) {
-          iconSrc = final.cover;
-        } else {
-          const coverPath = joinPath(final.cover_dir, final.cover);
-
-          iconSrc = isLocal
-            ? `/${coverPath}`
-            : `https://cdn.jsdelivr.net/gh/${final.cover_repo}@${final.tag || 'main'}/${coverPath}`;
-        }
-
-      } else {
-
-        if (isLocal) {
-          const coverDir = final.cover_dir || 'covers';
-          const ext = final.cover_ext || 'png';
-
-          iconSrc = `/${coverDir}/${key}.${ext}`;
-        }
-
-        else if (final.cover_repo) {
-          const coverPath = joinPath(
-            final.cover_dir,
-            key + '.' + (final.cover_ext || 'png')
-          );
-
-          iconSrc = `https://cdn.jsdelivr.net/gh/${final.cover_repo}@${final.tag || 'main'}/${coverPath}`;
-        }
-
-        else if (final.prefix === 'r') {
-          iconSrc = `${CDN_COVERS}/${key}.png`;
-        }
-
-        else {
-          iconSrc = `/icons/${key}.png`;
-        }
-      }
-
-      /* =========================
-         CREATE CARD
-      ========================= */
-      const card = document.createElement('div');
-      card.className = 'game-card';
-
-      card.dataset.search = [
-        final.name,
-        ...(Array.isArray(final.search) ? final.search : [])
-      ]
-        .join(' ')
-        .toLowerCase();
-
-      const coverLink = document.createElement('a');
-      coverLink.href = href;
-
-      const coverDiv = document.createElement('div');
-      coverDiv.className = 'card-cover';
-
-      const img = document.createElement('img');
-      img.src = iconSrc;
-      img.alt = final.name || '';
-
-      img.onerror = () => {
-        img.remove();
-        coverDiv.classList.add('no-image');
-      };
-
-      coverDiv.appendChild(img);
-      coverLink.appendChild(coverDiv);
-
-      const footer = document.createElement('div');
-      footer.className = 'card-footer';
-      footer.innerHTML = `<span class="card-name">${final.name}</span>`;
-
-      if (final.credit) {
-        const credit = document.createElement('a');
-        credit.className = 'card-credit';
-        credit.textContent = final.credit;
-        credit.href = `/r/?=${final.credit}`;
-        credit.addEventListener('click', e => e.stopPropagation());
-        footer.appendChild(credit);
-      }
-
-      card.appendChild(coverLink);
-      card.appendChild(footer);
-      grid.appendChild(card);
-    });
+    const key = getKey(final);
+    const isLocal = final.prefix === 'l';
 
     /* =========================
-       SEARCH
+       IMPORTANT:
+       ALL GAMES USE /i/?g=
     ========================= */
-    const searchBar = document.getElementById('search-bar');
+    const href = `/i/?g=${key}`;
 
-    searchBar.addEventListener('input', (e) => {
-      const query = e.target.value.trim().toLowerCase();
+    /* =========================
+       RESOLVE COVER
+    ========================= */
+    let iconSrc;
 
-      const cards = Array.from(document.querySelectorAll('.game-card'));
+    if (final.cover) {
 
-      const ranked = cards.map(card => {
-        const data = card.dataset.search || '';
-        return {
-          card,
-          score: scoreMatch(query, data)
-        };
-      });
+      if (/^https?:\/\//i.test(final.cover)) {
+        iconSrc = final.cover;
+      } else {
+        const coverPath = joinPath(final.cover_dir, final.cover);
 
-      ranked.sort((a, b) => b.score - a.score);
+        iconSrc = isLocal
+          ? `/${coverPath}`
+          : `https://cdn.jsdelivr.net/gh/${final.cover_repo}@${final.tag || 'main'}/${coverPath}`;
+      }
 
-      ranked.forEach(({ card, score }) => {
-        const visible = score >= SEARCH_THRESHOLD;
+    } else if (isLocal) {
+      const dir = final.cover_dir || 'c';
+      const ext = final.cover_ext || 'png';
+      iconSrc = `/${dir}/${key}.${ext}`;
 
-        card.style.display = visible ? '' : 'none';
-        card.style.opacity = visible ? '1' : '0.25';
+    } else if (final.cover_repo) {
+      const coverPath = joinPath(
+        final.cover_dir,
+        key + '.' + (final.cover_ext || 'png')
+      );
 
-        grid.appendChild(card);
-      });
-    });
+      iconSrc =
+        `https://cdn.jsdelivr.net/gh/${final.cover_repo}@${final.tag || 'main'}/${coverPath}`;
 
+    } else {
+      iconSrc = `${CDN_COVERS}/${key}.png`;
+    }
+
+    /* =========================
+       CARD
+    ========================= */
+    const card = document.createElement('div');
+    card.className = 'game-card';
+
+    card.dataset.search = [
+      final.name,
+      ...(Array.isArray(final.search) ? final.search : [])
+    ].join(' ').toLowerCase();
+
+    const link = document.createElement('a');
+    link.href = href;
+
+    const cover = document.createElement('div');
+    cover.className = 'card-cover';
+
+    const img = document.createElement('img');
+    img.src = iconSrc;
+    img.alt = final.name;
+
+    img.onerror = () => {
+      img.remove();
+      cover.classList.add('no-image');
+    };
+
+    cover.appendChild(img);
+    link.appendChild(cover);
+
+    const footer = document.createElement('div');
+    footer.className = 'card-footer';
+    footer.innerHTML = `<span class="card-name">${final.name}</span>`;
+
+    if (final.credit) {
+      const credit = document.createElement('a');
+      credit.className = 'card-credit';
+      credit.textContent = final.credit;
+      credit.href = `/r/?=${final.credit}`;
+      credit.onclick = e => e.stopPropagation();
+      footer.appendChild(credit);
+    }
+
+    card.appendChild(link);
+    card.appendChild(footer);
+
+    grid.appendChild(card);
   });
+}
+
+/* =========================
+   SEARCH
+========================= */
+function setupSearch() {
+  const searchBar = document.getElementById('search-bar');
+
+  searchBar.addEventListener('input', e => {
+    const q = e.target.value.trim().toLowerCase();
+
+    const cards = [...document.querySelectorAll('.game-card')];
+
+    const ranked = cards.map(card => ({
+      card,
+      score: scoreMatch(q, card.dataset.search || '')
+    }));
+
+    ranked.sort((a, b) => b.score - a.score);
+
+    ranked.forEach(({ card, score }) => {
+      const show = score >= SEARCH_THRESHOLD;
+
+      card.style.display = show ? '' : 'none';
+      card.style.opacity = show ? '1' : '0.25';
+
+      grid.appendChild(card);
+    });
+  });
+}
