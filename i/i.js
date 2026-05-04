@@ -1,6 +1,6 @@
-const iframe  = document.getElementById('game-iframe');
+const iframe = document.getElementById('game-iframe');
 const loadBar = document.getElementById('load-bar');
-const label   = document.getElementById('tb-label');
+const label = document.getElementById('tb-label');
 
 const PROXY = 'https://novalee.rxk.workers.dev/?url=';
 
@@ -11,16 +11,24 @@ const tabData = JSON.parse(localStorage.getItem('tab') || '{}');
 const hasCloak = !!(tabData.title || tabData.icon);
 
 /* =========================
-   PROXY WRAPPER
+   HELPERS
 ========================= */
 function useProxy(url) {
   return PROXY + encodeURIComponent(url);
 }
 
+function startLoad() {
+  if (loadBar) loadBar.style.transform = 'scaleX(.5)';
+}
+
+function finishLoad() {
+  if (loadBar) loadBar.style.transform = 'scaleX(1)';
+}
+
 /* =========================
-   LOAD PARAM
+   PARAMS
 ========================= */
-const params = new URLSearchParams(window.location.search);
+const params = new URLSearchParams(location.search);
 const gameId = params.get('g');
 
 let currentSrc = null;
@@ -44,6 +52,7 @@ function loadFallback() {
 ========================= */
 if (!gameId) {
   loadFallback();
+  if (currentSrc) loadGame(currentSrc);
 } else {
 
   fetch('/g/g.yml')
@@ -61,10 +70,11 @@ if (!gameId) {
       /* =========================
          FIND GAME
       ========================= */
-      const game = games.find(g =>
-        g.key === gameId ||
-        g.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === gameId
-      );
+      const game =
+        games.find(g =>
+          g.key === gameId ||
+          g.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === gameId
+        );
 
       if (!game) {
         document.body.innerHTML = "Game not found: " + gameId;
@@ -74,7 +84,8 @@ if (!gameId) {
       const provider = providers[game.provider] || {};
       const final = { ...provider, ...game };
 
-      const key = final.key ||
+      const key =
+        final.key ||
         game.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
       currentKey = key;
@@ -82,31 +93,36 @@ if (!gameId) {
       const isLocal = final.prefix === 'l';
 
       /* =========================
-         RESOLVE FILE
-      ========================= */
-      let filePath;
-
-      if (isLocal) {
-        const dir = final.dir || 'games';
-        filePath = `${dir}/${key}/index.html`;
-      } else {
-        filePath = (final.dir ? final.dir + '/' : '') + final.file;
-      }
-
-      /* =========================
-         RESOLVE FINAL URL
+         RESOLVE URL
       ========================= */
       let rawUrl;
 
       if (isLocal) {
-        rawUrl = `/${filePath}`;
-      } else if (final.prefix === 'r') {
-        rawUrl =
-          `https://cdn.jsdelivr.net/gh/${final.repo}@${final.tag || 'main'}/${filePath}`;
+        const dir = final.dir || 'g';
+        rawUrl = `/${dir}/${key}/index.html`;
       } else {
-        rawUrl = filePath;
+        const repo = final.repo || game.repo;
+        const tag = final.tag || 'main';
+        const file = final.file || 'index.html';
+        const cdn = final.cdn || 'jsdelivr';
+
+        if (!repo) {
+          document.body.innerHTML = "Missing repo for remote game: " + key;
+          return;
+        }
+
+        if (cdn === 'githack') {
+          rawUrl = `https://rawcdn.githack.com/${repo}/${tag}/${file}`;
+        } else if (cdn === 'raw') {
+          rawUrl = `https://raw.githubusercontent.com/${repo}/refs/heads/${tag}/${file}`;
+        } else {
+          rawUrl = `https://cdn.jsdelivr.net/gh/${repo}@${tag}/${file}`;
+        }
       }
 
+      /* =========================
+         APPLY PROXY ONLY FOR REMOTE
+      ========================= */
       currentSrc = isLocal ? rawUrl : useProxy(rawUrl);
 
       /* =========================
@@ -117,20 +133,13 @@ if (!gameId) {
         key: currentKey
       }));
 
-      history.replaceState(null, '', window.location.pathname);
+      history.replaceState(null, '', location.pathname);
 
       /* =========================
          LABEL
       ========================= */
-      if (label && currentKey) {
+      if (label) {
         label.textContent = currentKey.replace(/-/g, ' ');
-      }
-
-      /* =========================
-         META
-      ========================= */
-      if (!hasCloak) {
-        applyMeta(rawUrl);
       }
 
       loadGame(currentSrc);
@@ -181,8 +190,8 @@ async function applyMeta(url) {
 
       let link = document.querySelector("link[rel='icon']");
       if (!link) {
-        link = document.createElement("link");
-        link.rel = "icon";
+        link = document.createElement('link');
+        link.rel = 'icon';
         document.head.appendChild(link);
       }
 
@@ -192,17 +201,4 @@ async function applyMeta(url) {
   } catch (e) {
     console.warn('Meta extraction failed:', e);
   }
-}
-
-/* =========================
-   LOADING UI
-========================= */
-function startLoad() {
-  if (!loadBar) return;
-  loadBar.style.transform = 'scaleX(.5)';
-}
-
-function finishLoad() {
-  if (!loadBar) return;
-  loadBar.style.transform = 'scaleX(1)';
 }
