@@ -1,3 +1,33 @@
+function forceCloak() {
+  try {
+    const tabData = JSON.parse(localStorage.getItem('tab') || '{}');
+
+    if (!tabData.title && !tabData.icon) return;
+
+    // TITLE
+    if (tabData.title && document.title !== tabData.title) {
+      document.title = tabData.title;
+    }
+
+    // ICON
+    if (tabData.icon) {
+      let link = document.querySelector("link[rel*='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+
+      const current = link.href.split('?')[0];
+      if (current !== tabData.icon) {
+        link.href = tabData.icon + '?v=' + Date.now();
+      }
+    }
+
+  } catch {}
+}
+
+
 const iframe  = document.getElementById('game-iframe');
 const loadBar = document.getElementById('load-bar');
 const label   = document.getElementById('tb-label');
