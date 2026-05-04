@@ -67,3 +67,6 @@ games:
     cover: https://cdn2.steamgriddb.com/icon/db7a18d35df96354dcdacefdfb99d126/32/64x64.png
     search:
       - pt
+  - name: Slope
+    key: slope
+    prefix: g
