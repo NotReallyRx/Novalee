@@ -65,4 +65,4 @@ games:
       - C09RU
   - name: YOMI Hustle
     provider: gn-math
-    key: 776
+    key: "776"
