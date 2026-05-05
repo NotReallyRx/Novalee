@@ -73,7 +73,7 @@ games:
     file: index.html
     tag: main
     credit: selenite (ARCHIVED)
-    cdn: jsdelivr
+    cdn: githack
     cover: https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/DDLC_series_logo.svg/500px-DDLC_series_logo.svg.png
     search:
       - ddlc
