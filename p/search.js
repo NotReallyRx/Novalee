@@ -3,7 +3,7 @@
   // register SW (safe even if already registered)
   if ('serviceWorker' in navigator) {
     try {
-      await navigator.serviceWorker.register('/beta/service-worker.js', { scope: '/' });
+      await navigator.serviceWorker.register('/beta/service-worker.js', { scope: '/beta/' });
     } catch {}
   }
 
