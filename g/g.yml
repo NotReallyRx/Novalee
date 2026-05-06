@@ -67,6 +67,10 @@ games:
   - name: YOMI Hustle
     provider: gn-math
     key: "776"
+  - name: BLOODMONEY
+    provider: gn-math
+    key: "454"
+  
   
   - name: Doki Doki Literature Club Plus
     repo: SoupcanUBG/ddlc-plus
