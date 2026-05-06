@@ -223,3 +223,43 @@ function finishLoad() {
   if (!loadBar) return;
   loadBar.style.transform = 'scaleX(1)';
 }
+
+/* =========================
+   IFRAME CONTROLS
+========================= */
+
+function getFrame() {
+  return document.getElementById('game-iframe');
+}
+
+/* 🔄 Reload iframe only */
+function reloadFrame() {
+  const iframe = getFrame();
+  if (!iframe) return;
+
+  // safest reload method
+  iframe.src = iframe.src;
+}
+
+/* 🔳 Fullscreen iframe (not page UI) */
+function toggleFullscreen() {
+  const iframe = getFrame();
+  if (!iframe) return;
+
+  if (!document.fullscreenElement) {
+    // request fullscreen on iframe
+    iframe.requestFullscreen().catch(err => {
+      console.warn('Fullscreen failed:', err);
+    });
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+/* 🔗 Open iframe in new tab */
+function popOut() {
+  const iframe = getFrame();
+  if (!iframe || !iframe.src) return;
+
+  window.open(iframe.src, '_blank');
+}
