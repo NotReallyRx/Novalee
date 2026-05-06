@@ -68,7 +68,7 @@
   }
 
   const transport = new EpoxyTransport({
-    wisp: "wss://YOUR-WISP-SERVER/"
+    wisp: "wss://prints-initiative-commands-deborah.trycloudflare.com/"
   });
 
   await transport.init();
