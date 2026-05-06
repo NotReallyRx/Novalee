@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Access</title>
-  <script src="/main.js"></script>
+
   <link rel="stylesheet" href="/main.css" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@500;700&display=swap" rel="stylesheet"/>
 </head>
@@ -19,7 +19,14 @@
 
         <div id="lock-box">
           <div id="lock-title">ACCESS</div>
-          <input id="lock-input" type="password" placeholder="enter password" />
+
+          <input
+            id="lock-input"
+            type="password"
+            placeholder="enter password"
+            autocomplete="off"
+          />
+
           <div id="lock-error"></div>
         </div>
 
@@ -34,28 +41,46 @@
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
-
 <script>
-const HASH = "54076e29e0cf42179af31b0e22317f8d";
-const STORAGE_KEY = "gate_pass";
+const HASH = "7d9b0729ffe07d6557c8db04fc6f23dfeb2f2db8bb0564f934e3cb8ed5825dd9";
+const STORAGE_KEY = "pass";
+
+/* =========================
+   SHA-256 (native)
+========================= */
+async function sha256(str) {
+  const buf = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(str)
+  );
+  return Array.from(new Uint8Array(buf))
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("");
+}
 
 const input = document.getElementById("lock-input");
 const error = document.getElementById("lock-error");
 
 input.focus();
 
-input.addEventListener("keydown", (e) => {
+/* =========================
+   SUBMIT
+========================= */
+input.addEventListener("keydown", async (e) => {
   if (e.key !== "Enter") return;
 
   const val = input.value.trim();
-  const hash = CryptoJS.MD5(val).toString();
+  if (!val) return;
+
+  const hash = await sha256(val);
 
   if (hash === HASH) {
-    localStorage.setItem(STORAGE_KEY, HASH);
+    // store raw password
+    localStorage.setItem(STORAGE_KEY, val);
 
-    // redirect after unlock
-    window.location.replace("/");
+    // go back to original page if exists
+    const redirect = sessionStorage.getItem("after_lock") || "/";
+    window.location.replace(redirect);
   } else {
     error.textContent = "invalid";
     input.value = "";
