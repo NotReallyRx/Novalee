@@ -1,24 +1,34 @@
-(function () {
+(async function () {
 
-  const HASH = "54076e29e0cf42179af31b0e22317f8d";
+  const HASH = "PUT_YOUR_SHA256_HASH_HERE";
   const STORAGE_KEY = "gate_pass";
   const LOCK_PAGE = "/lock.html";
 
   const saved = localStorage.getItem(STORAGE_KEY);
 
-  // no password stored → go to lock
   if (!saved) {
     window.location.replace(LOCK_PAGE);
     return;
   }
 
-  // wrong password stored → reset + redirect
-  if (saved !== HASH) {
+  async function sha256(str) {
+    const buf = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(str)
+    );
+    return Array.from(new Uint8Array(buf))
+      .map(b => b.toString(16).padStart(2, "0"))
+      .join("");
+  }
+
+  const hash = await sha256(saved);
+
+  if (hash !== HASH) {
     localStorage.removeItem(STORAGE_KEY);
     window.location.replace(LOCK_PAGE);
     return;
   }
 
-  // ✅ valid → do nothing, page loads normally
+  // ✅ valid → do nothing
 
 })();
