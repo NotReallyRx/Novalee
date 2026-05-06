@@ -1,76 +1,111 @@
 (async () => {
 
-  // register SW (safe even if already registered)
-  if ('serviceWorker' in navigator) {
-    try {
-      await navigator.serviceWorker.register('/beta/service-worker.js', { scope: '/beta/' });
-    } catch {}
-  }
-
+  // SW
+  await navigator.serviceWorker.register('/sw.js', { scope: '/' });
   await navigator.serviceWorker.ready;
 
-  // load scramjet
+  // Scramjet
   const { ScramjetController } = $scramjetLoadController();
 
   const scramjet = new ScramjetController({
     prefix: '/scramjet/',
     files: {
       wasm: '/p/scramjet.wasm.wasm',
+      all: '/p/scramjet.all.js',
       sync: '/p/scramjet.sync.js',
-    },
-    flags: {
-      strictRewrites: true,
-      captureErrors: true,
     }
   });
 
   await scramjet.init();
 
-  // create hidden frame page redirect (uses your existing /i/ system if needed)
+  // -----------------------------
+  // 🔥 EPoxy ProxyTransport layer
+  // -----------------------------
+
+  class EpoxyTransport {
+    constructor(opts) {
+      this.wisp = opts.wisp;
+      this.ready = false;
+    }
+
+    async init() {
+      // load epoxy bundle if needed
+      this.ready = true;
+    }
+
+    async request(remote, method, body, headers, signal) {
+      const res = await fetch(remote.toString(), {
+        method,
+        body,
+        headers,
+        signal,
+        redirect: "manual"
+      });
+
+      return {
+        body: await res.arrayBuffer(),
+        headers: Object.fromEntries(res.headers.entries()),
+        status: res.status,
+        statusText: res.statusText
+      };
+    }
+
+    connect(url, protocols, headers, onopen, onmessage, onclose, onerror) {
+      const ws = new WebSocket(url.toString(), protocols);
+
+      ws.binaryType = "arraybuffer";
+
+      ws.onopen = () => onopen("", "");
+      ws.onmessage = (e) => onmessage(e.data);
+      ws.onerror = () => onerror("ws error");
+      ws.onclose = (e) => onclose(e.code, e.reason);
+
+      return [
+        (data) => ws.send(data),
+        (code, reason) => ws.close(code, reason)
+      ];
+    }
+  }
+
+  const transport = new EpoxyTransport({
+    wisp: "wss://YOUR-WISP-SERVER/"
+  });
+
+  await transport.init();
+
+  // -----------------------------
+  // Scramjet frame
+  // -----------------------------
+
   const frame = scramjet.createFrame();
 
-  // create container dynamically so we don't touch your layout
-  let container = document.createElement('div');
-  container.id = 'frame-outer';
-  container.style.position = 'fixed';
-  container.style.top = '0';
-  container.style.left = '0';
-  container.style.width = '100%';
-  container.style.height = '100%';
-  container.style.zIndex = '5';
-  container.style.display = 'none';
+  const container = document.createElement('div');
+  container.style.cssText = `
+    position:fixed;inset:0;z-index:999;display:none;
+  `;
 
   container.appendChild(frame.frame);
   document.body.appendChild(container);
 
   const input = document.getElementById('searchInput');
   const btn = document.getElementById('searchBtn');
-  const label = document.getElementById('tb-label');
-
-  function format(val) {
-    if (!val.startsWith('http://') && !val.startsWith('https://')) {
-      return 'https://www.google.com/search?q=' + encodeURIComponent(val);
-    }
-    return val;
-  }
 
   function go() {
-    const val = input.value.trim();
-    if (!val) return;
+    const v = input.value.trim();
+    if (!v) return;
 
     container.style.display = 'block';
-    frame.go(format(val));
+
+    frame.go(
+      v.startsWith('http')
+        ? v
+        : 'https://www.google.com/search?q=' + encodeURIComponent(v)
+    );
   }
 
   btn.onclick = go;
-
-  input.addEventListener('keydown', (e) => {
+  input.addEventListener('keydown', e => {
     if (e.key === 'Enter') go();
-  });
-
-  // update toolbar label
-  frame.addEventListener('urlchange', (e) => {
-    label.textContent = e.url;
   });
 
 })();
