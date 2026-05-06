@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Access</title>
+
+  <link rel="stylesheet" href="/main.css" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@500;700&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<div id="app">
+
+  <div id="main">
+
+    <div id="frame-outer">
+      <div id="lock-wrap">
+
+        <div id="lock-box">
+          <div id="lock-title">ACCESS</div>
+          <input id="lock-input" type="password" placeholder="enter password" />
+          <div id="lock-error"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <div id="toolbar">
+    <span id="tb-label">locked</span>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
+
+<script>
+const HASH = "54076e29e0cf42179af31b0e22317f8d";
+const STORAGE_KEY = "gate_pass";
+
+const input = document.getElementById("lock-input");
+const error = document.getElementById("lock-error");
+
+input.focus();
+
+input.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return;
+
+  const val = input.value.trim();
+  const hash = CryptoJS.MD5(val).toString();
+
+  if (hash === HASH) {
+    localStorage.setItem(STORAGE_KEY, HASH);
+
+    // redirect after unlock
+    window.location.replace("/");
+  } else {
+    error.textContent = "invalid";
+    input.value = "";
+  }
+});
+</script>
+
+</body>
+</html>
