@@ -25,11 +25,24 @@ function slugify(name) {
   );
 }
 
-const gameId = decodeURIComponent(
-  new URLSearchParams(location.search).get('g') || ''
-);
+/* =========================
+   GAME ID (PERSISTENT)
+========================= */
+const params = new URLSearchParams(location.search);
+let gameId = params.get('g');
 
-if (!gameId) fail("Missing ?g=");
+if (gameId) {
+  gameId = decodeURIComponent(gameId);
+
+  // save new selection
+  localStorage.setItem('lastGame', gameId);
+
+} else {
+  // fallback to saved game
+  gameId = localStorage.getItem('lastGame') || '';
+}
+
+if (!gameId) fail("Missing ?g= and no saved game");
 
 /* =========================
    FAIL UI
