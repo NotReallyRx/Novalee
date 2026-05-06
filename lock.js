@@ -1,7 +1,7 @@
 (async function () {
 
-  const HASH = "PUT_YOUR_SHA256_HASH_HERE";
-  const STORAGE_KEY = "gate_pass";
+  const HASH = "7d9b0729ffe07d6557c8db04fc6f23dfeb2f2db8bb0564f934e3cb8ed5825dd9";
+  const STORAGE_KEY = "pass";
   const LOCK_PAGE = "/lock.html";
 
   const saved = localStorage.getItem(STORAGE_KEY);
