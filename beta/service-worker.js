@@ -1,25 +1,26 @@
-// Load Scramjet
+// Load Scramjet bundle
 importScripts('/p/scramjet.all.js');
 
-// Install
-self.addEventListener('install', (event) => {
+const { ScramjetServiceWorker } = $scramjetLoadWorker();
+const scramjet = new ScramjetServiceWorker();
+
+self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
-// Activate
 self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-// Fetch handler (Scramjet handles proxying internally)
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
+  event.respondWith((async () => {
+    await scramjet.loadConfig();
 
-  // Let Scramjet handle its own prefix
-  if (url.pathname.startsWith('/scramjet/')) {
-    return; // DO NOT interfere
-  }
+    // Let Scramjet decide if it should handle it
+    if (scramjet.route(event)) {
+      return scramjet.fetch(event);
+    }
 
-  // Otherwise just pass through normally
-  event.respondWith(fetch(event.request));
+    return fetch(event.request);
+  })());
 });
