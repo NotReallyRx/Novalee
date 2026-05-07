@@ -73,7 +73,7 @@ games:
   - name: Cluster Rush
     provider: gn-math
     key: "81"
-  - name: Cluster Rush
+  - name: Ultrakill
     provider: gn-math
     key: "196"
   
