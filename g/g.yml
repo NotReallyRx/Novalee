@@ -73,6 +73,9 @@ games:
   - name: Cluster Rush
     provider: gn-math
     key: "81"
+  - name: Cluster Rush
+    provider: gn-math
+    key: "196"
   
   
   - name: Doki Doki Literature Club Plus
