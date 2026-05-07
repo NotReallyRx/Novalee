@@ -70,6 +70,9 @@ games:
   - name: BLOODMONEY
     provider: gn-math
     key: "454"
+  - name: Cluster Rush
+    provider: gn-math
+    key: "81"
   
   
   - name: Doki Doki Literature Club Plus
