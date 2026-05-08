@@ -82,9 +82,9 @@ games:
   - name: Hollow Knight
     provider: gn-math
     key: "468"
-  - name: Basketball Frvr
+  - name: Buckshot Roulette
     provider: gn-math
-    key: "28"  
+    key: "205"  
   
   - name: Doki Doki Literature Club Plus
     repo: SoupcanUBG/ddlc-plus
