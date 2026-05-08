@@ -2,7 +2,7 @@ const iframe = document.getElementById('game-iframe');
 const loadBar = document.getElementById('load-bar');
 const label = document.getElementById('tb-label');
 
-const PROXY = 'https://novalee.rxk.workers.dev/?url=';
+const PROXY = 'https://proxy.novalee.xyz/?url=';
 
 /* =========================
    CLOAK
