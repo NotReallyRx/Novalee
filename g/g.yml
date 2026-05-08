@@ -76,6 +76,12 @@ games:
   - name: Ultrakill
     provider: gn-math
     key: "196"
+  - name: Silksong
+    provider: gn-math
+    key: "771"
+  - name: Hollow Knight
+    provider: gn-math
+    key: "668"
   
   
   - name: Doki Doki Literature Club Plus
