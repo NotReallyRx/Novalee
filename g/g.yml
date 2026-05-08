@@ -84,8 +84,7 @@ games:
     key: "468"
   - name: Basketball Frvr
     provider: gn-math
-    key: "28"
-  
+    key: "28"  
   
   - name: Doki Doki Literature Club Plus
     repo: SoupcanUBG/ddlc-plus
