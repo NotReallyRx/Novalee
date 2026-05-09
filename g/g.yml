@@ -85,6 +85,9 @@ games:
   - name: Buckshot Roulette
     provider: gn-math
     key: "205"  
+  - name: work
+    provider: gn-math
+    key: "28"  
   
   - name: Doki Doki Literature Club Plus
     repo: SoupcanUBG/ddlc-plus
