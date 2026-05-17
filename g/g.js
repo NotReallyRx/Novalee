@@ -1,6 +1,13 @@
 const CDN_COVERS = 'https://cdn.jsdelivr.net/gh/freebuisness/covers@main';
 const grid = document.getElementById('grid');
 const SEARCH_THRESHOLD = 0.38;
+const RENDER_BATCH = 48;
+
+let ALL_GAMES = [];
+let FILTERED_GAMES = [];
+let PROVIDERS = {};
+
+let renderedCount = 0;
 
 /* =========================
    NAME → URL ID
