@@ -1,3 +1,7 @@
+imports:
+  - name: gn-math
+    file: /g/yml.d/gn-math.yml
+
 providers:
   - name: gn-math
     repo: freebuisness/html
@@ -64,30 +68,6 @@ games:
     cover: c09ru.png
     search:
       - C09RU
-  - name: YOMI Hustle
-    provider: gn-math
-    key: "776"
-  - name: BLOODMONEY
-    provider: gn-math
-    key: "454"
-  - name: Cluster Rush
-    provider: gn-math
-    key: "81"
-  - name: Ultrakill
-    provider: gn-math
-    key: "196"
-  - name: Silksong
-    provider: gn-math
-    key: "771"
-  - name: Hollow Knight
-    provider: gn-math
-    key: "468"
-  - name: Buckshot Roulette
-    provider: gn-math
-    key: "205"  
-  - name: work
-    provider: gn-math
-    key: "28"  
   
   - name: Doki Doki Literature Club Plus
     repo: SoupcanUBG/ddlc-plus
