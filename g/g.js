@@ -8,7 +8,23 @@ let FILTERED_GAMES = [];
 let PROVIDERS = {};
 
 let renderedCount = 0;
+function setupInfiniteScroll() {
 
+  window.addEventListener('scroll', () => {
+
+    const nearBottom =
+      window.innerHeight +
+      window.scrollY >=
+      document.body.offsetHeight - 1200;
+
+    if (
+      nearBottom &&
+      renderedCount < FILTERED_GAMES.length
+    ) {
+      renderNextBatch();
+    }
+  });
+}
 /* =========================
    NAME → URL ID
 ========================= */
