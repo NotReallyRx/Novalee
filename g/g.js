@@ -454,58 +454,31 @@ function renderNextBatch() {
 function setupSearch() {
 
   const input =
-    document.getElementById(
-      'search-bar'
-    );
+    document.getElementById('search-bar');
 
-  input.addEventListener(
-    'input',
-    e => {
+  input.addEventListener('input', e => {
 
-      const q =
-        e.target.value
-          .trim()
-          .toLowerCase();
+    const q =
+      e.target.value.trim().toLowerCase();
 
-      const cards = [
-        ...document.querySelectorAll(
-          '.game-card'
-        )
-      ];
+    // rebuild filtered dataset from full game list
+    FILTERED_GAMES = ALL_GAMES.filter(game => {
 
-      const ranked =
-        cards.map(card => ({
-          card,
-          score: scoreMatch(
-            q,
-            card.dataset.search || ''
-          )
-        }));
+      const text = [
+        game.name,
+        ...(game.search || [])
+      ].join(' ').toLowerCase();
 
-      ranked.sort(
-        (a, b) =>
-          b.score - a.score
-      );
+      return scoreMatch(q, text) >= SEARCH_THRESHOLD;
+    });
 
-      ranked.forEach(
-        ({ card, score }) => {
+    // reset batching state
+    renderedCount = 0;
 
-          const show =
-            score >= SEARCH_THRESHOLD;
+    // clear UI
+    grid.innerHTML = '';
 
-          card.style.display =
-            show
-              ? ''
-              : 'none';
-
-          card.style.opacity =
-            show
-              ? '1'
-              : '0.25';
-
-          grid.appendChild(card);
-        }
-      );
-    }
-  );
+    // render first batch of filtered results
+    renderNextBatch();
+  });
 }
