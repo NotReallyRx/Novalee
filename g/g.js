@@ -1,170 +1,7 @@
 const CDN_COVERS = 'https://cdn.jsdelivr.net/gh/freebuisness/covers@main';
 const grid = document.getElementById('grid');
 const SEARCH_THRESHOLD = 0.38;
-const RENDER_BATCH = 48;
 
-let ALL_GAMES = [];
-let FILTERED_GAMES = [];
-let PROVIDERS = {};
-
-let renderedCount = 0;
-
-function renderNextBatch() {
-
-  if (isRendering) return;
-  isRendering = true;
-
-  const slice =
-    FILTERED_GAMES.slice(
-      renderedCount,
-      renderedCount + RENDER_BATCH
-    );
-
-  slice.forEach(game => {
-    const provider =
-      PROVIDERS[game.provider] || {};
-
-    const final = {
-      ...provider,
-      ...game
-    };
-
-    const id =
-      final.key ||
-      slugify(final.name);
-
-    const urlName =
-      slugify(final.name);
-
-    const isLocal =
-      final.prefix === 'l';
-
-    const href =
-      `/i/?g=${urlName}`;
-
-    let icon;
-
-    if (final.cover) {
-
-      if (/^https?:\/\//i.test(final.cover)) {
-        icon = final.cover;
-
-      } else {
-
-        const path = joinPath(
-          final.cover_dir,
-          final.cover
-        );
-
-        icon = isLocal
-          ? `/${path}`
-          : `https://cdn.jsdelivr.net/gh/${final.cover_repo}@${final.tag || 'main'}/${path}`;
-      }
-
-    } else if (isLocal) {
-
-      const dir =
-        final.cover_dir || 'c';
-
-      icon =
-        `/${dir}/${id}.png`;
-
-    } else if (final.cover_repo) {
-
-      const path = joinPath(
-        final.cover_dir,
-        id + '.' + (final.cover_ext || 'png')
-      );
-
-      icon =
-        `https://cdn.jsdelivr.net/gh/${final.cover_repo}@${final.tag || 'main'}/${path}`;
-
-    } else {
-
-      icon =
-        `${CDN_COVERS}/${id}.png`;
-    }
-
-    const card =
-      document.createElement('div');
-
-    card.className = 'game-card';
-
-    card.dataset.search = [
-      final.name,
-      ...(final.search || [])
-    ].join(' ').toLowerCase();
-
-    const a = document.createElement('a');
-    a.href = href;
-
-    const cover =
-      document.createElement('div');
-
-    cover.className = 'card-cover';
-
-    const img =
-      document.createElement('img');
-
-    img.src = icon;
-    img.alt = final.name;
-
-    img.onerror = () => {
-      img.remove();
-      cover.classList.add('no-image');
-    };
-
-    cover.appendChild(img);
-    a.appendChild(cover);
-
-    const footer =
-      document.createElement('div');
-
-    footer.className = 'card-footer';
-
-    footer.innerHTML = `<span>${final.name}</span>`;
-
-    if (final.credit) {
-
-      const c =
-        document.createElement('a');
-
-      c.href = `/r/?=${final.credit}`;
-      c.textContent = final.credit;
-
-      c.onclick = e => e.stopPropagation();
-
-      footer.appendChild(c);
-    }
-
-    card.appendChild(a);
-    card.appendChild(footer);
-
-    grid.appendChild(card);
-  });
-
-  renderedCount += slice.length;
-
-  isRendering = false;
-}
-function setupInfiniteScroll() {
-
-  window.addEventListener('scroll', () => {
-
-    const scrollPos =
-      window.innerHeight + window.scrollY;
-
-    const threshold =
-      document.body.offsetHeight - 800;
-
-    if (
-      scrollPos >= threshold &&
-      renderedCount < FILTERED_GAMES.length
-    ) {
-      renderNextBatch();
-    }
-  });
-}
 /* =========================
    NAME → URL ID
 ========================= */
@@ -398,40 +235,39 @@ function scoreMatch(q, t) {
 resolveImports('/g/g.yml')
   .then(data => {
 
-    PROVIDERS = {};
+    const providers = {};
 
     (data.providers || []).forEach(p => {
-      PROVIDERS[p.name] = p;
+      providers[p.name] = p;
     });
 
-    ALL_GAMES =
-      data.games || [];
-
-    FILTERED_GAMES =
-      [...ALL_GAMES];
-
-    renderNextBatch();
+    render(
+      data.games || [],
+      providers
+    );
 
     setupSearch();
-    setupInfiniteScroll();
   })
+  .catch(err => {
+    console.error(err);
+
+    grid.innerHTML = `
+      <div class="error">
+        Failed to load games
+      </div>
+    `;
+  });
 
 /* =========================
    RENDER
 ========================= */
 
-function renderNextBatch() {
+function render(games, providers) {
 
-  const slice =
-    FILTERED_GAMES.slice(
-      renderedCount,
-      renderedCount + RENDER_BATCH
-    );
-
-  slice.forEach(game => {
+  games.forEach(game => {
 
     const provider =
-      PROVIDERS[game.provider] || {};
+      providers[game.provider] || {};
 
     const final = {
       ...provider,
@@ -581,10 +417,7 @@ function renderNextBatch() {
     card.appendChild(footer);
 
     grid.appendChild(card);
-     
   });
-     renderedCount += slice.length;
-
 }
 
 /* =========================
@@ -594,31 +427,58 @@ function renderNextBatch() {
 function setupSearch() {
 
   const input =
-    document.getElementById('search-bar');
+    document.getElementById(
+      'search-bar'
+    );
 
-  input.addEventListener('input', e => {
+  input.addEventListener(
+    'input',
+    e => {
 
-    const q =
-      e.target.value.trim().toLowerCase();
+      const q =
+        e.target.value
+          .trim()
+          .toLowerCase();
 
-    // rebuild filtered dataset from full game list
-    FILTERED_GAMES = ALL_GAMES.filter(game => {
+      const cards = [
+        ...document.querySelectorAll(
+          '.game-card'
+        )
+      ];
 
-      const text = [
-        game.name,
-        ...(game.search || [])
-      ].join(' ').toLowerCase();
+      const ranked =
+        cards.map(card => ({
+          card,
+          score: scoreMatch(
+            q,
+            card.dataset.search || ''
+          )
+        }));
 
-      return scoreMatch(q, text) >= SEARCH_THRESHOLD;
-    });
+      ranked.sort(
+        (a, b) =>
+          b.score - a.score
+      );
 
-    // reset batching state
-    renderedCount = 0;
+      ranked.forEach(
+        ({ card, score }) => {
 
-    // clear UI
-    grid.innerHTML = '';
+          const show =
+            score >= SEARCH_THRESHOLD;
 
-    // render first batch of filtered results
-    renderNextBatch();
-  });
+          card.style.display =
+            show
+              ? ''
+              : 'none';
+
+          card.style.opacity =
+            show
+              ? '1'
+              : '0.25';
+
+          grid.appendChild(card);
+        }
+      );
+    }
+  );
 }
