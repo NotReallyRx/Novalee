@@ -242,39 +242,40 @@ function scoreMatch(q, t) {
 resolveImports('/g/g.yml')
   .then(data => {
 
-    const providers = {};
+    PROVIDERS = {};
 
     (data.providers || []).forEach(p => {
-      providers[p.name] = p;
+      PROVIDERS[p.name] = p;
     });
 
-    render(
-      data.games || [],
-      providers
-    );
+    ALL_GAMES =
+      data.games || [];
+
+    FILTERED_GAMES =
+      [...ALL_GAMES];
+
+    renderNextBatch();
 
     setupSearch();
+    setupInfiniteScroll();
   })
-  .catch(err => {
-    console.error(err);
-
-    grid.innerHTML = `
-      <div class="error">
-        Failed to load games
-      </div>
-    `;
-  });
 
 /* =========================
    RENDER
 ========================= */
 
-function render(games, providers) {
+function renderNextBatch() {
 
-  games.forEach(game => {
+  const slice =
+    FILTERED_GAMES.slice(
+      renderedCount,
+      renderedCount + RENDER_BATCH
+    );
+
+  slice.forEach(game => {
 
     const provider =
-      providers[game.provider] || {};
+      PROVIDERS[game.provider] || {};
 
     const final = {
       ...provider,
