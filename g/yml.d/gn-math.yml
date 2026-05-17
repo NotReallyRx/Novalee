@@ -1,3 +1,4 @@
+games:
   - name: "OvO"
     provider: gn-math
     key: "1"
