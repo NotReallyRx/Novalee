@@ -425,7 +425,10 @@ function renderNextBatch() {
     card.appendChild(footer);
 
     grid.appendChild(card);
+     
   });
+     renderedCount += slice.length;
+
 }
 
 /* =========================
