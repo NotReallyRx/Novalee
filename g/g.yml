@@ -1,4 +1,4 @@
-imports:
+import:
   - name: gn-math
     file: /g/yml.d/gn-math.yml
 
