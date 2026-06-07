@@ -47,8 +47,15 @@ games:
     cover: https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/DDLC_series_logo.svg/500px-DDLC_series_logo.svg.png
     search:
       - ddlc
+  - name: "yesterday's Meat"
+    repo: SoupcanUBG/yesterdays-meat-port
+    file: index.html
+    tag: main
+    credit: notRx
+    cdn: jsdelivr
+    cover: https://img.itch.zone/aW1nLzIzMjM2NjA3LnBuZw==/original/j7a2gG.png
       
-  - name: Class of '09
+  - name: "Class of '09"
     provider: C09
     file: c.html
     cover: c09.png
