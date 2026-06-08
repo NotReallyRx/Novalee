@@ -273,7 +273,6 @@ function render(games, providers) {
       ...provider,
       ...game
     };
-     const directMode =
 
     const id =
       final.key ||
