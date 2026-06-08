@@ -273,6 +273,10 @@ function render(games, providers) {
       ...provider,
       ...game
     };
+     const directMode =
+  typeof final.direct === 'string'
+    ? final.direct.toLowerCase()
+    : 'n'; // default = use proxy system
 
     const id =
       final.key ||
