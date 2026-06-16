@@ -13,6 +13,8 @@
         window.BareMux = BareMux;
     </script>
     <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="/main.css">
+
     <script src="script.js" defer></script>
     <script src="/main.js"></script>
   <script src="/lock.js"></script>
@@ -24,8 +26,19 @@
 
 
 
-    <div id="app"></div>
+<div id="app">
 
+    <div id="toolbar">
+        <a class="tb-btn" href="/">Home</a>
+        <a class="tb-btn" href="/g/">Games</a>
+        <a class="tb-btn active" href="/p/">Proxy</a>
+
+        <span id="tb-label"></span>
+
+        <a class="tb-btn" href="/s/">Settings</a>
+    </div>
+
+</div>
     <div class="wisp-settings-modal hidden" id="wisp-settings-modal">
         <div class="settings-card">
             <div class="settings-header">
