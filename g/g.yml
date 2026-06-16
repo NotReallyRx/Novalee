@@ -56,9 +56,9 @@ games:
     cover: https://img.itch.zone/aW1nLzIzMjM2NjA3LnBuZw==/original/j7a2gG.png
       
   - name: "Class of '09"
-    provider: C09
-    file: c.html
-    cover: c09.png
+    repo: SoupcanUBG/Classof09
+    file: index.html
+    cover: https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fimages.igdb.com%2Figdb%2Fimage%2Fupload%2Ft_cover_big%2Fco45oa.png&f=1&nofb=1&ipt=965fccec91cbe8d4722fd239089041c167a62030b0995f5165b6436039c5ec77
     search:
       - C09
       - Class of 09
