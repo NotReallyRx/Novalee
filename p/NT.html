@@ -42,6 +42,60 @@
       --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
       --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
       --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.6);
+      #toolbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  height: 54px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  padding: 0 8px;
+
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+
+.tb-btn {
+  height: 34px;
+  padding: 0 14px;
+
+  border-radius: 7px;
+  background: transparent;
+  border: 1px solid transparent;
+
+  color: var(--text-muted);
+  text-decoration: none;
+
+  display: inline-flex;
+  align-items: center;
+
+  font-size: .68rem;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+
+  transition: all .15s;
+}
+
+.tb-btn:hover {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.tb-btn.active {
+  background: var(--surface-hover);
+  border-color: var(--border-light);
+  color: var(--text);
+}
+
+#tb-label {
+  flex: 1;
+}
 
       /* Spacing */
       --space-xs: 4px;
@@ -380,6 +434,15 @@
 
     renderCustom();
   </script>
+  <div id="toolbar">
+  <a class="tb-btn" href="/">Home</a>
+  <a class="tb-btn" href="/g/">Games</a>
+  <a class="tb-btn active" href="/p/">Proxy</a>
+
+  <span id="tb-label"></span>
+
+  <a class="tb-btn" href="/s/">Settings</a>
+</div>
 </body>
 
 </html>
