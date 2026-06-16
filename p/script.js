@@ -105,6 +105,19 @@ async function initializeBrowser() {
                     </div>
                 </div>
             </div>
+            </div>
+
+<div id="toolbar" >
+    <a class="tb-btn" href="/">Home</a>
+    <a class="tb-btn" href="/g/">Games</a>
+    <a class="tb-btn active" href="/p/">Proxy</a>
+
+    <span id="tb-label"></span>
+
+    <a class="tb-btn" href="/s/">Settings</a>
+</div>
+
+</div>`;
         </div>`;
 
     document.getElementById('back-btn').onclick = () => getActiveTab()?.frame.back();
