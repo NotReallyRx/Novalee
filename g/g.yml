@@ -55,16 +55,17 @@ games:
     credit: notRx
     tag: main
     cdn: jsdelivr
-    cover: https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fimages.igdb.com%2Figdb%2Fimage%2Fupload%2Ft_cover_big%2Fco45oa.png&f=1&nofb=1&ipt=965fccec91cbe8d4722fd239089041c167a62030b0995f5165b6436039c5ec77
+    cover: "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fimages.igdb.com%2Figdb%2Fimage%2Fupload%2Ft_cover_big%2Fco45oa.png&f=1&nofb=1&ipt=965fccec91cbe8d4722fd239089041c167a62030b0995f5165b6436039c5ec77"
     search:
       - C09
+
   - name: "Class of '09: The Re-Up"
     repo: SoupcanUBG/C09RU
     file: index.html
     credit: notRx
     tag: main
     cdn: jsdelivr
-    cover: https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fimages.igdb.com%2Figdb%2Fimage%2Fupload%2Ft_cover_big%2Fco6qx0.jpg&f=1&nofb=1&ipt=65c5fe1c2f9fc90027d1933d438403261f26dbd5a51399757e908ed019a88d3b
+    cover: "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fimages.igdb.com%2Figdb%2Fimage%2Fupload%2Ft_cover_big%2Fco6qx0.jpg&f=1&nofb=1&ipt=65c5fe1c2f9fc90027d1933d438403261f26dbd5a51399757e908ed019a88d3b"
     search:
       - C09RU
 
@@ -74,7 +75,7 @@ games:
     credit: notRx
     tag: main
     cdn: jsdelivr
-    cover: https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fm.media-amazon.com%2Fimages%2FM%2FMV5BMjRjZDhkNzItOGViZS00MjQ4LWEwZTgtMzkwMWZmZDIyMzljXkEyXkFqcGc%40._V1_.jpg&f=1&nofb=1&ipt=a1f182e452336a6e5be54da4ea20cbea271cbbb6d3838b91d9154fa35a51603a
+    cover: "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fm.media-amazon.com%2Fimages%2FM%2FMV5BMjRjZDhkNzItOGViZS00MjQ4LWEwZTgtMzkwMWZmZDIyMzljXkEyXkFqcGc%40._V1_.jpg&f=1&nofb=1&ipt=a1f182e452336a6e5be54da4ea20cbea271cbbb6d3838b91d9154fa35a51603a"
     search:
       - C09FS
 
