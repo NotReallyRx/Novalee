@@ -11,7 +11,6 @@ providers:
     credit: gn-math
     cdn: jsdelivr
     key: file
-
     cover_repo: freebuisness/covers
     cover_dir: 
     cover_ext: png
@@ -21,13 +20,6 @@ providers:
     dir: g
     cover_dir: c
     cover_ext: png
-  
-
-
-    cover_repo: SoupcanUBG/co9
-    cover_dir: main
-    cover_ext: png
-
 
 
 games:
