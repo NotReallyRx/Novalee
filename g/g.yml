@@ -4,7 +4,7 @@ import:
 
 providers:
   - name: gn-math
-    repo: gn-math/html
+    repo: freebuisness/html
     dir: ""
     prefix: r
     tag: main
