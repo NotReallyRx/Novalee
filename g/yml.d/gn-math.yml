@@ -1,6 +1,7 @@
 games:
   - name: "OvO"
     provider: gn-math
+    cover: "https://cdn.jsdelivr.net/gh/freebuisness/covers@main/1.png"
     key: "1-fde"
 
   - name: "OvO 2"
