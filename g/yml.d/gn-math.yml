@@ -1,7 +1,7 @@
 games:
   - name: "OvO"
     provider: gn-math
-    key: "1"
+    key: "1-fde"
 
   - name: "OvO 2"
     provider: gn-math
