@@ -2,17 +2,12 @@ const iframe = document.getElementById('game-iframe');
 const loadBar = document.getElementById('load-bar');
 const label = document.getElementById('tb-label');
 
-const PROXY = 'https://proxy.novalee.xyz/?url=';
+const PROXY = `${window.location.origin}/proxy/?url=`;
 
-/* =========================
-   CLOAK
-========================= */
 const tab = JSON.parse(localStorage.getItem('tab') || '{}');
 const hasCloak = !!(tab.title || tab.icon);
 
-/* =========================
-   SLUGIFY (MATCH g.js)
-========================= */
+
 function slugify(name) {
   return encodeURIComponent(
     name
