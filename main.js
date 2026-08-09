@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', function () {
         document.head.appendChild(link);
       }
 
-      // IMPORTANT: avoid breaking base64 icons
       if (tabData.icon.startsWith('data:')) {
         link.href = tabData.icon;
       } else {
