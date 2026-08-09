@@ -1,4 +1,3 @@
-
 const DEFAULT_WISP = "wss://anura.pro/";
 const WISP_SERVERS = [
     { name: "Rhw's Wisp", url: "wss://wisp.rhw.one/wisp/" },
@@ -8,7 +7,6 @@ const WISP_SERVERS = [
 if (!localStorage.getItem("proxServer")) {
     localStorage.setItem("proxServer", DEFAULT_WISP);
 }
-
 
 if (typeof BareMux === 'undefined') {
     BareMux = { BareMuxConnection: class { constructor() { } setTransport() { } } };
@@ -163,6 +161,7 @@ function createTab(makeActive = true) {
             tab.title = "Browsing";
             tab.favicon = null;
         }
+
         updateTabsUI();
         updateAddressBar();
         updateLoadingBar(tab, 10);
@@ -173,7 +172,8 @@ function createTab(makeActive = true) {
                 const skipBtn = document.getElementById('skip-btn');
                 if (skipBtn) skipBtn.style.display = 'inline-block';
             }
-        }, 1000); 
+        }, 1000);
+    });
 
     frame.frame.addEventListener('load', () => {
         tab.loading = false;
@@ -220,7 +220,7 @@ function showIframeLoading(show, url = '') {
         if (show) {
             title.textContent = "Connecting";
             urlText.textContent = url || "Loading content...";
-            skipBtn.style.display = 'none'; 
+            skipBtn.style.display = 'none';
         }
     }
 }
@@ -236,7 +236,6 @@ function switchTab(tabId) {
 
         const skipBtn = document.getElementById('skip-btn');
         if (tab.loading && skipBtn) {
-
         }
     }
 
@@ -303,17 +302,23 @@ function updateAddressBar() {
     }
 }
 
-function getActiveTab() { return tabs.find(t => t.id === activeTabId); }
+function getActiveTab() {
+    return tabs.find(t => t.id === activeTabId);
+}
 
 function handleSubmit(url) {
     const tab = getActiveTab();
     let input = url || document.getElementById("address-bar").value.trim();
-    if (!input) return;
+    if (!input || !tab) return;
 
     if (!input.startsWith('http')) {
-        if (input.includes('.') && !input.includes(' ')) input = 'https://' + input;
-        else input = 'https://search.brave.com/search?q=' + encodeURIComponent(input);
+        if (input.includes('.') && !input.includes(' ')) {
+            input = 'https://' + input;
+        } else {
+            input = 'https://search.brave.com/search?q=' + encodeURIComponent(input);
+        }
     }
+
     tab.frame.go(input);
 }
 
@@ -327,6 +332,8 @@ function updateLoadingBar(tab, percent) {
 
 function openSettings() {
     const modal = document.getElementById('wisp-settings-modal');
+    if (!modal) return;
+
     modal.classList.remove('hidden');
 
     document.getElementById('close-wisp-modal').onclick = () => modal.classList.add('hidden');
@@ -340,12 +347,17 @@ function openSettings() {
 }
 
 function getStoredWisps() {
-    try { return JSON.parse(localStorage.getItem('customWisps') || '[]'); }
-    catch { return []; }
+    try {
+        return JSON.parse(localStorage.getItem('customWisps') || '[]');
+    } catch {
+        return [];
+    }
 }
 
 function renderServerList() {
     const list = document.getElementById('server-list');
+    if (!list) return;
+
     list.innerHTML = '';
 
     const currentUrl = localStorage.getItem('proxServer') || DEFAULT_WISP;
@@ -386,9 +398,12 @@ function renderServerList() {
 
 function saveCustomWisp() {
     const input = document.getElementById('custom-wisp-input');
+    if (!input) return;
+
     const url = input.value.trim();
 
     if (!url) return;
+
     if (!url.startsWith('ws://') && !url.startsWith('wss://')) {
         if (typeof Notify !== 'undefined') Notify.error('Invalid URL', 'URL must start with wss:// or ws://');
         else alert("URL must start with wss:// or ws://");
@@ -414,7 +429,7 @@ function saveCustomWisp() {
 window.deleteCustomWisp = function (urlToDelete) {
     if (!confirm("Remove this server?")) return;
 
-    let customWisps = getStoredWisps().filter(w => w.url !== urlToDelete);
+    const customWisps = getStoredWisps().filter(w => w.url !== urlToDelete);
     localStorage.setItem('customWisps', JSON.stringify(customWisps));
 
     if (localStorage.getItem('proxServer') === urlToDelete) {
@@ -448,9 +463,14 @@ async function checkServerHealth(url, element) {
             text.textContent = `${latency}ms`;
         };
 
-        socket.onerror = () => { clearTimeout(timeout); markOffline(); };
+        socket.onerror = () => {
+            clearTimeout(timeout);
+            markOffline();
+        };
 
-    } catch { markOffline(); }
+    } catch {
+        markOffline();
+    }
 
     function markOffline() {
         dot.classList.add('status-error');
@@ -467,30 +487,33 @@ function setWisp(url) {
     const oldUrl = localStorage.getItem('proxServer');
     localStorage.setItem('proxServer', url);
 
-    // Show notification before reload
     if (typeof Notify !== 'undefined' && oldUrl !== url) {
         const serverName = [...WISP_SERVERS, ...getStoredWisps()].find(s => s.url === url)?.name || 'Custom Server';
         Notify.success('Proxy Changed', `Switching to ${serverName}...`);
     }
 
-    if (navigator.serviceWorker.controller) {
+    if (navigator.serviceWorker?.controller) {
         navigator.serviceWorker.controller.postMessage({ type: 'config', wispurl: url });
     }
 
     setTimeout(() => location.reload(), 600);
 }
 
-
 function toggleDevTools() {
     const win = getActiveTab()?.frame.frame.contentWindow;
     if (!win) return;
+
     if (win.eruda) {
         win.eruda.show();
         return;
     }
+
     const script = win.document.createElement('script');
     script.src = "https://cdn.jsdelivr.net/npm/eruda";
-    script.onload = () => { win.eruda.init(); win.eruda.show(); };
+    script.onload = () => {
+        win.eruda.init();
+        win.eruda.show();
+    };
     win.document.body.appendChild(script);
 }
 
