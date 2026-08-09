@@ -1,9 +1,7 @@
-// =====================================================
-// CONFIGURATION
-// =====================================================
+
 const DEFAULT_WISP = "wss://anura.pro/";
 const WISP_SERVERS = [
-    { name: "Rhw's Wisp", url: "wss://wisp.rhw.one/wisp/" }, //note that this also works with uv static and sj static
+    { name: "Rhw's Wisp", url: "wss://wisp.rhw.one/wisp/" },
     { name: "Anura's Wisp", url: "wss://anura.pro/" }
 ];
 
@@ -11,9 +9,7 @@ if (!localStorage.getItem("proxServer")) {
     localStorage.setItem("proxServer", DEFAULT_WISP);
 }
 
-// =====================================================
-// BROWSER STATE
-// =====================================================
+
 if (typeof BareMux === 'undefined') {
     BareMux = { BareMuxConnection: class { constructor() { } setTransport() { } } };
 }
@@ -23,9 +19,6 @@ let tabs = [];
 let activeTabId = null;
 let nextTabId = 1;
 
-// =====================================================
-// INITIALIZATION
-// =====================================================
 document.addEventListener('DOMContentLoaded', async function () {
     let basePath = location.pathname.replace(/[^/]*$/, '');
     if (!basePath.endsWith('/')) basePath += '/';
@@ -47,19 +40,16 @@ document.addEventListener('DOMContentLoaded', async function () {
         await navigator.serviceWorker.ready;
         const wispUrl = localStorage.getItem("proxServer") || DEFAULT_WISP;
 
-        // Try to send to both active registration and controller to be safe
         const sw = reg.active || navigator.serviceWorker.controller;
         if (sw) {
             console.log("Sending config to SW:", wispUrl);
             sw.postMessage({ type: "config", wispurl: wispUrl });
         }
 
-        // Ensure controller also gets it if different
         if (navigator.serviceWorker.controller && navigator.serviceWorker.controller !== sw) {
             navigator.serviceWorker.controller.postMessage({ type: "config", wispurl: wispUrl });
         }
 
-        // Force update to get new SW code if available
         reg.update();
 
         const connection = new BareMux.BareMuxConnection(basePath + "bareworker.js");
@@ -69,9 +59,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     await initializeBrowser();
 });
 
-// =====================================================
-// BROWSER UI
-// =====================================================
 async function initializeBrowser() {
     const root = document.getElementById("app");
     root.innerHTML = `
@@ -123,7 +110,6 @@ async function initializeBrowser() {
     document.getElementById('devtools-btn').onclick = toggleDevTools;
     document.getElementById('wisp-settings-btn').onclick = openSettings;
 
-    // Skip button logic
     const skipBtn = document.getElementById('skip-btn');
     if (skipBtn) {
         skipBtn.onclick = () => {
@@ -147,9 +133,6 @@ async function initializeBrowser() {
     checkHashParameters();
 }
 
-// =====================================================
-// TAB MANAGEMENT
-// =====================================================
 function createTab(makeActive = true) {
     const frame = scramjet.createFrame();
     const tab = {
@@ -168,7 +151,6 @@ function createTab(makeActive = true) {
         tab.url = e.url;
         tab.loading = true;
 
-        // Show loading screen immediately if this is the active tab
         if (tab.id === activeTabId) {
             showIframeLoading(true, tab.url);
         }
@@ -185,15 +167,13 @@ function createTab(makeActive = true) {
         updateAddressBar();
         updateLoadingBar(tab, 10);
 
-        // Set timeout to show skip button
         if (tab.skipTimeout) clearTimeout(tab.skipTimeout);
         tab.skipTimeout = setTimeout(() => {
             if (tab.loading && tab.id === activeTabId) {
                 const skipBtn = document.getElementById('skip-btn');
                 if (skipBtn) skipBtn.style.display = 'inline-block';
             }
-        }, 1000); // 1 second before skip button appears
-    });
+        }, 1000); 
 
     frame.frame.addEventListener('load', () => {
         tab.loading = false;
@@ -240,7 +220,7 @@ function showIframeLoading(show, url = '') {
         if (show) {
             title.textContent = "Connecting";
             urlText.textContent = url || "Loading content...";
-            skipBtn.style.display = 'none'; // Reset skip button visibility
+            skipBtn.style.display = 'none'; 
         }
     }
 }
@@ -251,19 +231,12 @@ function switchTab(tabId) {
 
     tabs.forEach(t => t.frame.frame.classList.toggle("hidden", t.id !== tabId));
 
-    // Update loading state for accessibiltiy
     if (tab) {
         showIframeLoading(tab.loading, tab.url);
-        // If this tab has been loading for > 5s, show skip button immediately
-        // Note: simplified logic, ideally we track start time
+
         const skipBtn = document.getElementById('skip-btn');
         if (tab.loading && skipBtn) {
-            // If we switched to a loading tab, we might want to check if the timeout passed, 
-            // but for now we'll just rely on the existing timeout or hide it initially.
-            // A better approach would be to track 'showSkip' state on the tab.
-            // For this implementation, we reset it to hidden to avoid immediate pop-in unless timeout fires.
-            // If timeout already fired for this tab, it might be tricky without storing state.
-            // Let's stick to the timeout firing or re-firing.
+
         }
     }
 
@@ -352,9 +325,6 @@ function updateLoadingBar(tab, percent) {
     if (percent === 100) setTimeout(() => { bar.style.width = "0%"; }, 200);
 }
 
-// =====================================================
-// SETTINGS & WISP
-// =====================================================
 function openSettings() {
     const modal = document.getElementById('wisp-settings-modal');
     modal.classList.remove('hidden');
@@ -486,7 +456,6 @@ async function checkServerHealth(url, element) {
         dot.classList.add('status-error');
         text.textContent = "Offline";
 
-        // Notify if this is the currently selected wisp
         const currentWisp = localStorage.getItem('proxServer') || DEFAULT_WISP;
         if (url === currentWisp && typeof Notify !== 'undefined') {
             Notify.error('Connection Failed', 'Current proxy server is offline. Try switching servers.');
@@ -508,13 +477,10 @@ function setWisp(url) {
         navigator.serviceWorker.controller.postMessage({ type: 'config', wispurl: url });
     }
 
-    // Small delay to show notification
     setTimeout(() => location.reload(), 600);
 }
 
-// =====================================================
-// UTILITIES
-// =====================================================
+
 function toggleDevTools() {
     const win = getActiveTab()?.frame.frame.contentWindow;
     if (!win) return;
