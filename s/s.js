@@ -25,9 +25,7 @@ function saveTabData(d) {
 }
 
 
-// =========================
-// FIXED FAVICON HANDLER
-// =========================
+
 function setFavicon(url) {
   var link = document.querySelector("link[rel*='icon']");
 
@@ -37,24 +35,20 @@ function setFavicon(url) {
     document.head.appendChild(link);
   }
 
-  // base64 / data URL support
   if (url.startsWith('data:')) {
 
-    // improve compatibility
     if (url.startsWith('data:image/png')) link.type = 'image/png';
     else if (url.startsWith('data:image/svg')) link.type = 'image/svg+xml';
     else if (url.startsWith('data:image/x-icon')) link.type = 'image/x-icon';
 
-    link.href = url; // no cache busting
+    link.href = url; 
   } else {
-    link.href = url + '?v=' + Date.now(); // normal URLs
+    link.href = url + '?v=' + Date.now(); 
   }
 }
 
 
-// =========================
-// TITLE + ICON APPLY
-// =========================
+
 function applyTitle() {
   var input = document.getElementById('title-input');
   if (!input) return;
@@ -94,9 +88,6 @@ function applyIcon() {
 }
 
 
-// =========================
-// PRESET CLOAKS
-// =========================
 var CLOAKS = {};
 
 function applyCloak() {
@@ -127,9 +118,7 @@ function applyCloak() {
 }
 
 
-// =========================
-// RESET
-// =========================
+
 function resetTab() {
   localStorage.removeItem('tab');
 
@@ -144,9 +133,7 @@ function resetTab() {
 }
 
 
-// =========================
-// INIT AFTER DOM
-// =========================
+
 document.addEventListener('DOMContentLoaded', function () {
   var d = getTabData();
 
@@ -160,14 +147,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (i) i.value = d.icon;
   }
 
-  // apply saved favicon immediately (fixes reload issue)
   if (d.icon) {
     setFavicon(d.icon);
   }
 
-  // =========================
-  // CLOAKER BUTTON
-  // =========================
   var btn = document.getElementById('cloaker-button');
   if (!btn) return;
 
