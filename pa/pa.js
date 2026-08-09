@@ -1,5 +1,5 @@
 (async function () {
-    const PAGES_URL = '/pa/pages.yml';
+    const PAGES_URL = '/pa/pa.yml';
 
     async function loadPages() {
         try {
