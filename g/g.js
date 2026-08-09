@@ -2,9 +2,7 @@ const CDN_COVERS = 'https://cdn.jsdelivr.net/gh/freebuisness/covers@main';
 const grid = document.getElementById('grid');
 const SEARCH_THRESHOLD = 0.38;
 
-/* =========================
-   NAME → URL ID
-========================= */
+
 function slugify(name) {
   return encodeURIComponent(
     name
@@ -17,9 +15,6 @@ function slugify(name) {
   );
 }
 
-/* =========================
-   HELPERS
-========================= */
 function joinPath(dir, file) {
   if (!dir) return file;
 
@@ -30,9 +25,6 @@ function joinPath(dir, file) {
   );
 }
 
-/* =========================
-   YAML HELPERS
-========================= */
 
 async function loadYamlFile(path) {
 
@@ -65,7 +57,6 @@ async function resolveImports(
   visited = new Set()
 ) {
 
-  // prevent circular imports
   if (visited.has(path)) {
 
     console.warn(
@@ -94,7 +85,6 @@ async function resolveImports(
 
     try {
 
-      // import file
       if (imp.file) {
 
         const child =
@@ -112,7 +102,6 @@ async function resolveImports(
         );
       }
 
-      // import directory
       else if (imp.dir) {
 
         const dir =
@@ -146,9 +135,7 @@ async function resolveImports(
   return merged;
 }
 
-/* =========================
-   SEARCH
-========================= */
+
 
 function levenshtein(a, b) {
 
@@ -228,9 +215,7 @@ function scoreMatch(q, t) {
   return best;
 }
 
-/* =========================
-   LOAD YAML
-========================= */
+
 
 resolveImports('/g/g.yml')
   .then(data => {
@@ -258,9 +243,7 @@ resolveImports('/g/g.yml')
     `;
   });
 
-/* =========================
-   RENDER
-========================= */
+
 
 function render(games, providers) {
 
@@ -284,16 +267,11 @@ function render(games, providers) {
     const isLocal =
       final.prefix === 'l';
 
-    /* =========================
-       /i/?g=NAME-SLUG
-    ========================= */
 
     const href =
       `/i/?g=${urlName}`;
 
-    /* =========================
-       COVER
-    ========================= */
+
 
     let icon;
 
@@ -341,9 +319,6 @@ function render(games, providers) {
         `${CDN_COVERS}/${id}.png`;
     }
 
-    /* =========================
-       CARD
-    ========================= */
 
     const card =
       document.createElement('div');
@@ -420,9 +395,6 @@ function render(games, providers) {
   });
 }
 
-/* =========================
-   SEARCH
-========================= */
 
 function setupSearch() {
 
