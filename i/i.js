@@ -20,36 +20,27 @@ function slugify(name) {
   );
 }
 
-/* =========================
-   GAME ID (PERSISTENT)
-========================= */
+
 const params = new URLSearchParams(location.search);
 let gameId = params.get('g');
 
 if (gameId) {
   gameId = decodeURIComponent(gameId);
 
-  // save new selection
   localStorage.setItem('lastGame', gameId);
 
 } else {
-  // fallback to saved game
   gameId = localStorage.getItem('lastGame') || '';
 }
 
 if (!gameId) fail("Missing ?g= and no saved game");
 
-/* =========================
-   FAIL UI
-========================= */
+
 function fail(msg) {
   console.error(msg);
   document.body.innerHTML = `<h2>Game Loader Error</h2><p>${msg}</p>`;
 }
 
-/* =========================
-   YAML HELPERS
-========================= */
 
 async function loadYamlFile(path) {
   const res = await fetch(path);
@@ -73,7 +64,6 @@ async function loadYamlFile(path) {
 
 async function resolveImports(path, visited = new Set()) {
 
-  // prevent circular imports
   if (visited.has(path)) {
     console.warn('Skipped circular import:', path);
     return {
@@ -97,7 +87,6 @@ async function resolveImports(path, visited = new Set()) {
 
     try {
 
-      // import explicit file
       if (imp.file) {
 
         const child = await resolveImports(
@@ -109,7 +98,6 @@ async function resolveImports(path, visited = new Set()) {
         merged.games.push(...child.games);
       }
 
-      // import directory
       else if (imp.dir) {
 
         let dir = imp.dir.replace(/\/+$/, '');
@@ -131,9 +119,7 @@ async function resolveImports(path, visited = new Set()) {
   return merged;
 }
 
-/* =========================
-   LOAD YAML
-========================= */
+
 
 resolveImports('/g/g.yml')
   .then(data => {
@@ -159,9 +145,7 @@ resolveImports('/g/g.yml')
 
     const isLocal = final.prefix === 'l';
 
-    /* =========================
-       FILE RESOLUTION
-    ========================= */
+   
 
     const dir = final.dir || '';
     const key = final.key;
@@ -195,9 +179,7 @@ resolveImports('/g/g.yml')
       ? `${dir}/${file}`
       : file;
 
-    /* =========================
-       BUILD URL
-    ========================= */
+
 
     let url;
 
@@ -234,9 +216,6 @@ resolveImports('/g/g.yml')
       url = PROXY + encodeURIComponent(url);
     }
 
-    /* =========================
-       LOAD GAME
-    ========================= */
 
     sessionStorage.setItem('last', JSON.stringify({
       src: url,
@@ -257,9 +236,6 @@ resolveImports('/g/g.yml')
   })
   .catch(e => fail(e.message));
 
-/* =========================
-   LOAD GAME
-========================= */
 
 function loadGame(src) {
 
@@ -279,9 +255,7 @@ function loadGame(src) {
   }, { once: true });
 }
 
-/* =========================
-   META EXTRACTION
-========================= */
+
 
 async function applyMeta(url) {
 
@@ -290,7 +264,6 @@ async function applyMeta(url) {
     const res = await fetch(url);
     const html = await res.text();
 
-    /* TITLE */
 
     const titleMatch =
       html.match(/<title>(.*?)<\/title>/i);
@@ -299,7 +272,6 @@ async function applyMeta(url) {
       document.title = titleMatch[1];
     }
 
-    /* ICON */
 
     const iconMatch =
       html.match(
@@ -349,9 +321,7 @@ async function applyMeta(url) {
   }
 }
 
-/* =========================
-   LOADING BAR
-========================= */
+
 
 function startLoad() {
 
@@ -367,15 +337,11 @@ function finishLoad() {
   loadBar.style.transform = 'scaleX(1)';
 }
 
-/* =========================
-   IFRAME CONTROLS
-========================= */
 
 function getFrame() {
   return document.getElementById('game-iframe');
 }
 
-/* 🔄 Reload iframe only */
 
 function reloadFrame() {
 
@@ -386,7 +352,6 @@ function reloadFrame() {
   iframe.src = iframe.src;
 }
 
-/* 🔳 Fullscreen iframe */
 
 function toggleFullscreen() {
 
@@ -410,7 +375,6 @@ function toggleFullscreen() {
   }
 }
 
-/* 🔗 Open iframe in new tab */
 
 function popOut() {
 
