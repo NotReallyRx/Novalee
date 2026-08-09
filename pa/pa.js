@@ -1,11 +1,11 @@
 (async function () {
     async function loadPages() {
-        const response = await fetch('/pages.yml', {
+        const response = await fetch('/pa/pa.yml', {
             cache: 'no-cache'
         });
 
         if (!response.ok) {
-            throw new Error(`Failed to load pages.yml: ${response.status}`);
+            throw new Error(`Failed to load pa.yml: ${response.status}`);
         }
 
         const text = await response.text();
