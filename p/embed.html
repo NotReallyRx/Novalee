@@ -122,7 +122,6 @@
                 window.BareMux = BareMux;
         </script>
         <script>
-            // BareMux fallback for safety if module import fails
             if (typeof window.BareMux === 'undefined') {
                 window.BareMux = { BareMuxConnection: class { constructor(){} async setTransport(){ return; } } };
             }
@@ -239,7 +238,6 @@
                     if (!$scramjetLoadController) throw new Error('Scramjet controller not found');
                     await scramjet.init();
 
-                    // Register service worker with error handling
                     let reg;
                     try {
                         if (!('serviceWorker' in navigator)) throw new Error('Service Worker not supported');
