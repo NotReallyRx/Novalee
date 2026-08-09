@@ -1,27 +1,39 @@
 (async function () {
-    const PAGES_URL = '/pa/pa.yml';
-
     async function loadPages() {
-        try {
-            const response = await fetch(PAGES_URL, {
-                cache: 'no-cache'
-            });
+        const response = await fetch('/pages.yml', {
+            cache: 'no-cache'
+        });
 
-            if (!response.ok) {
-                throw new Error(`Failed to load ${PAGES_URL}: ${response.status}`);
-            }
-
-            const text = await response.text();
-            const pages = parseYAML(text);
-
-            renderActions(pages);
-            renderToolbar(pages);
-        } catch (error) {
-            console.error('Failed to load pages:', error);
+        if (!response.ok) {
+            throw new Error(`Failed to load pages.yml: ${response.status}`);
         }
+
+        const text = await response.text();
+        const pages = parsePages(text);
+
+        const toolbar = document.getElementById('toolbar');
+        const label = document.getElementById('tb-label');
+
+        if (!toolbar || !label) return;
+
+        pages.left.forEach((page, index) => {
+            const link = document.createElement('a');
+            link.className = `tb-btn${index === 0 ? ' active' : ''}`;
+            link.href = page.link;
+            link.textContent = page.name;
+            toolbar.insertBefore(link, label);
+        });
+
+        pages.right.forEach(page => {
+            const link = document.createElement('a');
+            link.className = 'tb-btn';
+            link.href = page.link;
+            link.textContent = page.name;
+            toolbar.appendChild(link);
+        });
     }
 
-    function parseYAML(text) {
+    function parsePages(text) {
         const pages = {
             left: [],
             right: []
@@ -30,32 +42,29 @@
         let section = null;
         let current = null;
 
-        for (const rawLine of text.split(/\r?\n/)) {
-            const line = rawLine.trim();
+        for (const line of text.split(/\r?\n/)) {
+            const trimmed = line.trim();
 
-            if (!line || line.startsWith('#')) continue;
+            if (!trimmed || trimmed.startsWith('#')) continue;
 
-            if (line === 'left:') {
+            if (trimmed === 'left:') {
                 section = 'left';
-                current = null;
                 continue;
             }
 
-            if (line === 'right:') {
+            if (trimmed === 'right:') {
                 section = 'right';
-                current = null;
                 continue;
             }
 
             if (!section) continue;
 
-            const itemMatch = line.match(/^-\s+name:\s*(.*)$/);
+            const item = trimmed.match(/^-\s+name:\s*(.*)$/);
 
-            if (itemMatch) {
+            if (item) {
                 current = {
-                    name: itemMatch[1].trim(),
-                    link: '',
-                    type: 'action'
+                    name: item[1].trim(),
+                    link: ''
                 };
 
                 pages[section].push(current);
@@ -64,78 +73,14 @@
 
             if (!current) continue;
 
-            const nameMatch = line.match(/^name:\s*(.*)$/);
-            const linkMatch = line.match(/^link:\s*(.*)$/);
-            const typeMatch = line.match(/^type:\s*(.*)$/);
+            const link = trimmed.match(/^link:\s*(.*)$/);
 
-            if (nameMatch) {
-                current.name = nameMatch[1].trim();
-            }
-
-            if (linkMatch) {
-                current.link = linkMatch[1].trim();
-            }
-
-            if (typeMatch) {
-                current.type = typeMatch[1].trim();
+            if (link) {
+                current.link = link[1].trim();
             }
         }
 
         return pages;
-    }
-
-    function createLink(page, className) {
-        const link = document.createElement('a');
-
-        link.className = className;
-        link.href = page.link;
-        link.textContent = page.name;
-
-        return link;
-    }
-
-    function renderActions(pages) {
-        const container = document.getElementById('actions');
-
-        if (!container) return;
-
-        container.innerHTML = '';
-
-        [...pages.left, ...pages.right].forEach(page => {
-            const className = page.type === 'ghost'
-                ? 'action-btn ghost'
-                : 'action-btn';
-
-            container.appendChild(createLink(page, className));
-        });
-    }
-
-    function renderToolbar(pages) {
-        const toolbar = document.getElementById('toolbar');
-
-        if (!toolbar) return;
-
-        const label = document.getElementById('tb-label');
-
-        toolbar.querySelectorAll('.tb-btn').forEach(el => el.remove());
-
-        const leftPages = pages.left;
-        const rightPages = pages.right;
-
-        leftPages.forEach(page => {
-            const link = createLink(page, 'tb-btn');
-
-            if (label) {
-                toolbar.insertBefore(link, label);
-            } else {
-                toolbar.appendChild(link);
-            }
-        });
-
-        rightPages.forEach(page => {
-            const link = createLink(page, 'tb-btn');
-            toolbar.appendChild(link);
-        });
     }
 
     if (document.readyState === 'loading') {
