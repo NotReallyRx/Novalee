@@ -46,7 +46,6 @@ self.addEventListener("message", ({ data }) => {
     }
 });
 
-// Fallback if config is never received (prevents 500 error)
 setTimeout(() => {
     if (!wispConfig.wispurl && resolveConfigReady) {
         console.warn("SW: Config timeout, using default Wisp");
