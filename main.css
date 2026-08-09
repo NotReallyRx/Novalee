@@ -20,7 +20,6 @@ html, body {
   font-family: 'DM Mono', monospace;
 }
 
-/* ── LAYOUT ── */
 #app {
   display: flex;
   flex-direction: column;
@@ -35,7 +34,6 @@ html, body {
   overflow: hidden;
 }
 
-/* ── FRAME ── */
 #frame-outer {
   flex: 1;
   position: relative;
@@ -64,7 +62,6 @@ html, body {
   opacity: .4;
 }
 
-/* ── CONTROLS (right column) ── */
 #controls {
   width: 42px;
   display: flex;
@@ -130,7 +127,6 @@ html, body {
   pointer-events: none;
 }
 
-/* ── TOOLBAR ── */
 #toolbar {
   height: var(--toolbar);
   display: flex;
@@ -188,7 +184,6 @@ html, body {
   white-space: nowrap;
 }
 
-/* fullscreen: hide chrome */
 :fullscreen #toolbar    { display: none !important; }
 :fullscreen #main       { padding: 0; gap: 0; }
 :fullscreen #controls   { display: none; }
@@ -205,12 +200,10 @@ html, body {
   position: relative;
 }
 
-/* fallback when image fails or missing */
 .card-cover.no-image {
   background: linear-gradient(135deg, var(--dim), rgba(255,255,255,0.05));
 }
 
-/* optional subtle placeholder */
 .card-cover.no-image::after {
   content: "x";
   font-size: 2rem;
@@ -255,23 +248,21 @@ html, body {
   color: var(--text);
   letter-spacing: .02em;
 
-  white-space: nowrap;      /* keep 1 line */
-  overflow: hidden;         /* hide overflow */
-  text-overflow: ellipsis;  /* show ... */
-  width: 100%;              /* IMPORTANT */
+  white-space: nowrap;     
+  overflow: hidden;        
+  text-overflow: ellipsis;  
+  width: 100%;             
 }
-/* ── CARD FOOTER ── */
 .card-footer {
   padding: 8px 10px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;  /* left align */
+  align-items: flex-start;  
   gap: 3px;
   width: 100%;
-  overflow: hidden;         /* contain children */
+  overflow: hidden;        
 }
 
-/* Game name — single line with ellipsis */
 .card-footer span {
   font-family: 'Syne', sans-serif;
   font-size: .76rem;
@@ -285,10 +276,9 @@ html, body {
   display: block;
 }
 
-/* Credit link — dark grey, no purple ever */
 .card-footer a {
   font-size: .65rem;
-  color: var(--muted);          /* dark grey */
+  color: var(--muted);         
   text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
@@ -298,13 +288,12 @@ html, body {
 }
 
 .card-footer a:visited {
-  color: var(--muted);          /* stay grey after click */
+  color: var(--muted);          
 }
 
 .card-footer a:hover {
-  color: var(--text);           /* subtle hover */
+  color: var(--text);         
 }
-/* ── LOCK SCREEN ── */
 #lock-wrap {
   display: flex;
   align-items: center;
@@ -355,7 +344,6 @@ html, body {
   height: 10px;
   opacity: .8;
 }
-/* ── CENTER SEARCH (replaces actions buttons) ── */
 #actions {
   display: flex;
   gap: 6px;
