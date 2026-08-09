@@ -45,9 +45,6 @@
 const HASH = "7d9b0729ffe07d6557c8db04fc6f23dfeb2f2db8bb0564f934e3cb8ed5825dd9";
 const STORAGE_KEY = "pass";
 
-/* =========================
-   SHA-256 (native)
-========================= */
 async function sha256(str) {
   const buf = await crypto.subtle.digest(
     "SHA-256",
@@ -63,9 +60,7 @@ const error = document.getElementById("lock-error");
 
 input.focus();
 
-/* =========================
-   SUBMIT
-========================= */
+
 input.addEventListener("keydown", async (e) => {
   if (e.key !== "Enter") return;
 
@@ -75,10 +70,8 @@ input.addEventListener("keydown", async (e) => {
   const hash = await sha256(val);
 
   if (hash === HASH) {
-    // store raw password
     localStorage.setItem(STORAGE_KEY, val);
 
-    // go back to original page if exists
     const redirect = sessionStorage.getItem("after_lock") || "/";
     window.location.replace(redirect);
   } else {
