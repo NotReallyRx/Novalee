@@ -214,13 +214,11 @@
                 iframeContainer.classList.add('loaded');
             }
 
-            // Allow WISP override via query (e.g., ?wisp=wss://host/wisp/)
             const wispOverride = urlParams.get('wisp');
             if (wispOverride && /^wss:\/\//.test(wispOverride)) {
                 try { localStorage.setItem('proxServer', wispOverride); } catch(_e) {}
             }
 
-            // Retry logic for initialization
             const maxInitRetries = 3;
             let initAttempt = 0;
 
@@ -253,7 +251,6 @@
 
                     const wispUrl = localStorage.getItem('proxServer') || 'wss://wisp.rhw.one/wisp/';
 
-                    // Wait for SW ready with timeout
                     const swReadyPromise = navigator.serviceWorker.ready;
                     const swReadyTimeout = new Promise((_, reject) =>
                         setTimeout(() => reject(new Error("SW ready timeout")), 10000)
@@ -261,10 +258,8 @@
 
                     await Promise.race([swReadyPromise, swReadyTimeout]);
 
-                    // Force update to get latest SW
                     reg.update().catch(e => console.warn("SW update check failed:", e));
 
-                    // Wait for controller with timeout
                     if (!navigator.serviceWorker.controller) {
                         console.log("Embed: Waiting for SW controller...");
                         const controllerPromise = new Promise(resolve => {
@@ -278,7 +273,6 @@
                         await Promise.race([controllerPromise, controllerTimeout]);
                     }
 
-                    // Send config to SW
                     const sw = reg.active || navigator.serviceWorker.controller;
                     if (sw) {
                         console.log("Embed: Sending config to SW:", wispUrl);
@@ -288,7 +282,6 @@
                         navigator.serviceWorker.controller.postMessage({ type: 'config', wispurl: wispUrl });
                     }
 
-                    // Setup BareMux connection with retry
                     let connection;
                     for (let connAttempt = 0; connAttempt < 3; connAttempt++) {
                         try {
@@ -328,7 +321,6 @@
 
                         frame.frame.addEventListener('error', (err) => {
                             console.error("Embed: Frame error:", err);
-                            // Don't immediately show error - SW may retry
                             loadingTitle.textContent = 'Retrying...';
                         });
 
