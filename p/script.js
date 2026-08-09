@@ -109,6 +109,7 @@ async function initializeBrowser() {
     <a class="tb-btn" href="/">Home</a>
     <a class="tb-btn" href="/g/">Games</a>
     <a class="tb-btn active" href="/p/">Proxy</a>
+    <a class="tb-btn" href="https://hypertunnel.github.io/">HyperTunnel</a>
 
     <span id="tb-label"></span>
 
