@@ -1,8 +1,10 @@
-const DEFAULT_WISP = "wss://copium-wisp-9058389.onrender.com/w/";
+const DEFAULT_WISP = `wss://${location.hostname}/wisp/`;
+
 const WISP_SERVERS = [
-  { name: "Novalee's Wisp", url: "wss://copium-wisp-9058389.onrender.com/w/" },
+  { name: "Novalee's Wisp", url: DEFAULT_WISP },
   { name: "Anura's Wisp", url: "wss://anura.pro/" },
 ];
+
 
 if (!localStorage.getItem("proxServer")) {
   localStorage.setItem("proxServer", DEFAULT_WISP);

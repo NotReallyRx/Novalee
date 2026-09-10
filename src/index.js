@@ -16,6 +16,13 @@ export default {
   async fetch(request, env) {
     const requestUrl = new URL(request.url);
 
+    // WebSocket proxy
+    if (requestUrl.pathname.startsWith("/wisp/")) {
+      requestUrl.hostname = "copium-wisp-9058389.onrender.com";
+      requestUrl.protocol = "https:";
+      return fetch(new Request(requestUrl, request));
+    }
+
     if (requestUrl.pathname !== "/pr/") {
       return env.ASSETS.fetch(request);
     }
@@ -23,25 +30,18 @@ export default {
     const target = requestUrl.searchParams.get("url");
 
     if (!target) {
-      return new Response("Missing url", {
-        status: 400,
-      });
+      return new Response("Missing url", { status: 400 });
     }
 
     let targetUrl;
-
     try {
       targetUrl = new URL(target);
     } catch {
-      return new Response("Invalid url", {
-        status: 400,
-      });
+      return new Response("Invalid url", { status: 400 });
     }
 
     if (targetUrl.protocol !== "http:" && targetUrl.protocol !== "https:") {
-      return new Response("Only HTTP and HTTPS URLs are supported", {
-        status: 400,
-      });
+      return new Response("Only HTTP and HTTPS URLs are supported", { status: 400 });
     }
 
     const iframeTarget = iframeRules[targetUrl.href];
@@ -82,38 +82,25 @@ export default {
 </html>`;
 
       return new Response(html, {
-        headers: {
-          "content-type": "text/html; charset=utf-8",
-        },
+        headers: { "content-type": "text/html; charset=utf-8" },
       });
     }
 
     let response;
-
     try {
-      response = await fetch(targetUrl.href, {
-        redirect: "follow",
-      });
+      response = await fetch(targetUrl.href, { redirect: "follow" });
     } catch (error) {
-      return new Response(`Failed to fetch target: ${error.message}`, {
-        status: 502,
-      });
+      return new Response(`Failed to fetch target: ${error.message}`, { status: 502 });
     }
 
     const contentType = response.headers.get("content-type") || "";
-
     const finalUrl = response.url || targetUrl.href;
-
     const pathname = new URL(finalUrl).pathname.toLowerCase();
-
-    const isHtml =
-      contentType.includes("text/html") || /\.html?$/i.test(pathname);
+    const isHtml = contentType.includes("text/html") || /\.html?$/i.test(pathname);
 
     if (!isHtml) {
       const headers = new Headers(response.headers);
-
       headers.set("access-control-allow-origin", "*");
-
       return new Response(response.body, {
         status: response.status,
         statusText: response.statusText,
@@ -122,15 +109,11 @@ export default {
     }
 
     let html = await response.text();
-
     const baseUrl = finalUrl.substring(0, finalUrl.lastIndexOf("/") + 1);
 
     if (!/<base[\s>]/i.test(html)) {
       if (/<head[^>]*>/i.test(html)) {
-        html = html.replace(
-          /<head([^>]*)>/i,
-          `<head$1><base href="${baseUrl}">`,
-        );
+        html = html.replace(/<head([^>]*)>/i, `<head$1><base href="${baseUrl}">`);
       } else {
         html = `<!doctype html>
 <html>
@@ -153,4 +136,4 @@ ${html}
       },
     });
   },
-};
+};   
