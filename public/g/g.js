@@ -1,8 +1,8 @@
 const grid = document.getElementById("grid");
 const SEARCH_THRESHOLD = 0.38;
 
-// ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
+
+
 function slugify(name) {
   return encodeURIComponent(
     name
@@ -164,9 +164,9 @@ function normalizeGame(game, providers) {
   return normalizeYamlGame(game, providers);
 }
 
-// ---------------------------------------------------------------------------
-// LuminSDK (headless) source
-// ---------------------------------------------------------------------------
+
+
+
 let luminInitPromise = null;
 
 function ensureLuminInit() {
@@ -213,9 +213,7 @@ async function loadLuminGames() {
   } while (page <= pages);
 
   const images = await Promise.all(
-    rawGames.map((g) =>
-      Lumin.getImageUrl(g.image_token).catch(() => null),
-    ),
+    rawGames.map((g) => Lumin.getImageUrl(g.image_token).catch(() => null)),
   );
 
   return rawGames.map((g, i) => normalizeLuminGame(g, images[i]));
@@ -244,8 +242,8 @@ function render(games) {
     if (g.href) {
       a.href = g.href;
     } else if (g.isLumin) {
-      // Lumin game URLs are one-time use, so fetch a fresh one right
-      // before navigating instead of baking it into the href up front.
+      
+      
       a.href = "#";
       a.addEventListener("click", (e) => {
         e.preventDefault();
@@ -444,7 +442,7 @@ function storeSource(source) {
   try {
     localStorage.setItem(SOURCE_STORAGE_KEY, source);
   } catch {
-    // ignore storage failures (private browsing, disabled storage, etc.)
+    
   }
 }
 

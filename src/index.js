@@ -16,7 +16,7 @@ export default {
   async fetch(request, env) {
     const requestUrl = new URL(request.url);
 
-    // WebSocket proxy
+    
     if (requestUrl.pathname.startsWith("/w/")) {
       requestUrl.hostname = "copium-wisp-9058389.onrender.com";
       requestUrl.protocol = "https:";
