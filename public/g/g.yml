@@ -1,0 +1,8 @@
+import:
+  - name: Novalee
+    url: g.d/novalee.yml
+  - name: gn-math
+    url: /pr/?url=https://gn-math.dev/s/EE0_FEFXflkxUx5iECccXCcNRB9_GDdDXysSex5LLgFQGDgFPFIDP1U1C0ouEEEtPBc7WV82FTodSmUOQQI_.json
+    env:
+      COVER_URL: https://cdn.jsdelivr.net/gh/freebuisness/covers@main
+      HTML_URL: https://cdn.jsdelivr.net/gh/freebuisness/html@main

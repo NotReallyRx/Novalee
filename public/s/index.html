@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Novalee - Settings</title>
+    <link rel="icon" href="/favicon.ico" />
+    <script src="../lock.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../main.css" />
+    <script src="../main.js"></script>
+    <script src="../pa/pa.js"></script>
+
+    <style>
+      body {
+        margin: 0;
+      }
+
+      #content {
+        padding: 32px;
+        overflow-y: auto;
+      }
+
+      .page-header {
+        margin-bottom: 32px;
+      }
+
+      .page-title {
+        font-family: "Syne", sans-serif;
+        font-size: 0.65rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .section-label {
+        font-family: "Syne", sans-serif;
+        font-size: 0.58rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin: 28px 0 10px;
+      }
+
+      .box {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: visible;
+        max-width: 680px;
+      }
+
+      .row {
+        display: flex;
+        align-items: center;
+        padding: 14px 16px;
+        gap: 14px;
+        overflow: visible;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .row:last-child {
+        border-bottom: none;
+      }
+
+      .row-body {
+        flex: 1;
+      }
+
+      .row-title {
+        font-size: 0.72rem;
+        color: var(--text);
+      }
+
+      .row-desc {
+        font-size: 0.62rem;
+        color: var(--muted);
+        margin-top: 3px;
+      }
+
+      .input-group {
+        display: flex;
+        gap: 6px;
+        width: 240px;
+      }
+
+      .settings-input,
+      .settings-select {
+        height: 28px;
+        background: var(--dim);
+        border: 1px solid var(--border-hi);
+        border-radius: 6px;
+        color: var(--text);
+        overflow: visible;
+        font-family: "DM Mono", monospace;
+        font-size: 0.62rem;
+        padding: 0 10px;
+        flex: 1;
+      }
+
+      .btn {
+        height: 28px;
+        padding: 0 12px;
+        border-radius: 6px;
+        background: transparent;
+        border: 1px solid var(--border-hi);
+        color: var(--muted);
+        font-family: "DM Mono", monospace;
+        font-size: 0.62rem;
+        cursor: pointer;
+      }
+
+      .btn:hover {
+        background: var(--raised);
+        color: var(--text);
+      }
+
+      .btn.danger {
+        border-color: #3a1a1a;
+        color: #7a3030;
+      }
+
+      #status {
+        font-size: 0.6rem;
+        margin-top: 16px;
+        min-height: 16px;
+      }
+
+      #status.ok {
+        color: #4a8a4a;
+      }
+      #status.err {
+        color: #8a4a4a;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+
+      #app {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      #content {
+        flex: 1;
+        padding: 32px;
+        overflow-y: auto;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app">
+      <div id="content">
+        <div class="page-header">
+          <div class="page-title">Settings</div>
+        </div>
+
+        <div class="section-label">Tab cloak</div>
+        <div class="box">
+          <div class="row">
+            <div class="row-body">
+              <div class="row-title">Tab title</div>
+              <div class="row-desc">Overrides the browser tab text</div>
+            </div>
+            <div class="input-group">
+              <input
+                class="settings-input"
+                id="title-input"
+                placeholder="e.g. Google"
+              />
+              <button class="btn" onclick="applyTitle()">set</button>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="row-body">
+              <div class="row-title">Favicon URL</div>
+              <div class="row-desc">Overrides the browser tab icon</div>
+            </div>
+            <div class="input-group">
+              <input
+                class="settings-input"
+                id="icon-input"
+                placeholder="https://..."
+              />
+              <button class="btn" onclick="applyIcon()">set</button>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="row-body">
+              <div class="row-title">Premade cloak</div>
+              <div class="row-desc">Preset title + icon</div>
+            </div>
+            <div class="input-group">
+              <select class="settings-select" id="premadecloaks">
+                <option value="">— choose —</option>
+                <option value="search">Google</option>
+                <option value="drive">Drive</option>
+                <option value="youtube">YouTube</option>
+                <option value="gmail">Gmail</option>
+                <option value="classroom">Classroom</option>
+              </select>
+              <button class="btn" onclick="applyCloak()">set</button>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="row-body">
+              <div class="row-title">Reset tab</div>
+              <div class="row-desc">Clear saved cloak</div>
+            </div>
+            <button class="btn danger" onclick="resetTab()">reset</button>
+          </div>
+        </div>
+
+        <div class="section-label">Navigation</div>
+        <div class="box">
+          <div class="row">
+            <div class="row-body">
+              <div class="row-title">Open in about:blank</div>
+            </div>
+            <button class="btn" id="cloaker-button">open</button>
+          </div>
+        </div>
+
+        <div id="status"></div>
+      </div>
+
+      <div id="toolbar">
+        <span id="tb-label"></span>
+      </div>
+    </div>
+
+    <script src="s.js"></script>
+  </body>
+</html>
