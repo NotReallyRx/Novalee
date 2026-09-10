@@ -41,7 +41,9 @@ export default {
     }
 
     if (targetUrl.protocol !== "http:" && targetUrl.protocol !== "https:") {
-      return new Response("Only HTTP and HTTPS URLs are supported", { status: 400 });
+      return new Response("Only HTTP and HTTPS URLs are supported", {
+        status: 400,
+      });
     }
 
     const iframeTarget = iframeRules[targetUrl.href];
@@ -90,13 +92,16 @@ export default {
     try {
       response = await fetch(targetUrl.href, { redirect: "follow" });
     } catch (error) {
-      return new Response(`Failed to fetch target: ${error.message}`, { status: 502 });
+      return new Response(`Failed to fetch target: ${error.message}`, {
+        status: 502,
+      });
     }
 
     const contentType = response.headers.get("content-type") || "";
     const finalUrl = response.url || targetUrl.href;
     const pathname = new URL(finalUrl).pathname.toLowerCase();
-    const isHtml = contentType.includes("text/html") || /\.html?$/i.test(pathname);
+    const isHtml =
+      contentType.includes("text/html") || /\.html?$/i.test(pathname);
 
     if (!isHtml) {
       const headers = new Headers(response.headers);
@@ -113,7 +118,10 @@ export default {
 
     if (!/<base[\s>]/i.test(html)) {
       if (/<head[^>]*>/i.test(html)) {
-        html = html.replace(/<head([^>]*)>/i, `<head$1><base href="${baseUrl}">`);
+        html = html.replace(
+          /<head([^>]*)>/i,
+          `<head$1><base href="${baseUrl}">`,
+        );
       } else {
         html = `<!doctype html>
 <html>
@@ -136,4 +144,4 @@ ${html}
       },
     });
   },
-};   
+};

@@ -5,7 +5,6 @@ const WISP_SERVERS = [
   { name: "Anura's Wisp", url: "wss://anura.pro/" },
 ];
 
-
 if (!localStorage.getItem("proxServer")) {
   localStorage.setItem("proxServer", DEFAULT_WISP);
 }
