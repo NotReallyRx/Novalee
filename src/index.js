@@ -17,7 +17,7 @@ export default {
     const requestUrl = new URL(request.url);
 
     // WebSocket proxy
-    if (requestUrl.pathname.startsWith("/wisp/")) {
+    if (requestUrl.pathname.startsWith("/w/")) {
       requestUrl.hostname = "copium-wisp-9058389.onrender.com";
       requestUrl.protocol = "https:";
       return fetch(new Request(requestUrl, request));
