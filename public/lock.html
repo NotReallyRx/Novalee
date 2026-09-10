@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Access</title>
+
+    <link rel="stylesheet" href="main.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="app">
+      <div id="main">
+        <div id="frame-outer">
+          <div id="lock-wrap">
+            <div id="lock-box">
+              <div id="lock-title">ACCESS</div>
+
+              <input
+                id="lock-input"
+                type="password"
+                placeholder="enter password"
+                autocomplete="off"
+              />
+
+              <div id="lock-error"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="toolbar">
+        <span id="tb-label">locked</span>
+      </div>
+    </div>
+
+    <script>
+      const HASH =
+        "7d9b0729ffe07d6557c8db04fc6f23dfeb2f2db8bb0564f934e3cb8ed5825dd9";
+      const STORAGE_KEY = "pass";
+
+      async function sha256(str) {
+        const buf = await crypto.subtle.digest(
+          "SHA-256",
+          new TextEncoder().encode(str),
+        );
+        return Array.from(new Uint8Array(buf))
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+      }
+
+      const input = document.getElementById("lock-input");
+      const error = document.getElementById("lock-error");
+
+      input.focus();
+
+      input.addEventListener("keydown", async (e) => {
+        if (e.key !== "Enter") return;
+
+        const val = input.value.trim();
+        if (!val) return;
+
+        const hash = await sha256(val);
+
+        if (hash === HASH) {
+          localStorage.setItem(STORAGE_KEY, val);
+
+          const redirect = sessionStorage.getItem("after_lock") || "/";
+          window.location.replace(redirect);
+        } else {
+          error.textContent = "invalid";
+          input.value = "";
+        }
+      });
+    </script>
+  </body>
+</html>

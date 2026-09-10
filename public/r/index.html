@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Credit - Novalee</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/main.css" />
+    <script src="../main.js"></script>
+    <script src="../lock.js"></script>
+    <script src="../pa/pa.js"></script>
+    <style>
+      #center {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 8px;
+      }
+
+      #credit-name {
+        font-family: "Syne", sans-serif;
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--text);
+        letter-spacing: 0.02em;
+      }
+
+      #credit-link {
+        font-family: "DM Mono", monospace;
+        font-size: 0.7rem;
+        color: var(--muted);
+        letter-spacing: 0.08em;
+        text-decoration: none;
+        transition: color 0.15s;
+      }
+
+      #credit-link:hover {
+        color: var(--text);
+      }
+
+      #visit-btn {
+        margin-top: 16px;
+      }
+
+      #not-found {
+        font-family: "DM Mono", monospace;
+        font-size: 0.75rem;
+        color: var(--muted);
+        letter-spacing: 0.1em;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div id="center" id="center">
+        <div id="content"></div>
+      </div>
+
+      <div id="toolbar">
+        <span id="tb-label"></span>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
+    <script src="r.js"></script>
+  </body>
+</html>
