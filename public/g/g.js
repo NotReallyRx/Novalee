@@ -164,6 +164,72 @@ function normalizeGame(game, providers) {
   return normalizeYamlGame(game, providers);
 }
 
+// ---------------------------------------------------------------------------
+// LuminSDK (headless) source
+// ---------------------------------------------------------------------------
+let luminInitPromise = null;
+
+function ensureLuminInit() {
+  if (!window.Lumin) {
+    return Promise.reject(new Error("LuminSDK script failed to load"));
+  }
+
+  if (!luminInitPromise) {
+    luminInitPromise = Lumin.init({ headless: true });
+  }
+
+  return luminInitPromise;
+}
+
+function normalizeLuminGame(game, imgUrl) {
+  return {
+    id: `lumin-${game.id}`,
+    name: game.name,
+    href: null,
+    icon: imgUrl,
+    credit: null,
+    creditHref: null,
+    searchExtra: game.category ? [game.category] : [],
+    featured: false,
+    isLumin: true,
+    luminId: game.id,
+  };
+}
+
+async function loadLuminGames() {
+  await ensureLuminInit();
+
+  const limit = 50;
+  let page = 1;
+  let pages = 1;
+  const rawGames = [];
+
+  do {
+    const res = await Lumin.getGames({ page, limit });
+
+    rawGames.push(...(res.games || []));
+    pages = res.pages || 1;
+    page++;
+  } while (page <= pages);
+
+  const images = await Promise.all(
+    rawGames.map((g) =>
+      Lumin.getImageUrl(g.image_token).catch(() => null),
+    ),
+  );
+
+  return rawGames.map((g, i) => normalizeLuminGame(g, images[i]));
+}
+
+async function launchLuminGame(g) {
+  const { url } = await Lumin.getGameUrl(g.luminId);
+  const href = buildLaunchHref(url, g.name);
+
+  if (href) {
+    window.location.href = href;
+  }
+}
+
 function render(games) {
   games.forEach((g) => {
     const card = document.createElement("div");
@@ -177,6 +243,16 @@ function render(games) {
 
     if (g.href) {
       a.href = g.href;
+    } else if (g.isLumin) {
+      // Lumin game URLs are one-time use, so fetch a fresh one right
+      // before navigating instead of baking it into the href up front.
+      a.href = "#";
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        launchLuminGame(g).catch((err) =>
+          console.error("Failed to launch Lumin game:", err),
+        );
+      });
     }
 
     const cover = document.createElement("div");
@@ -309,26 +385,92 @@ function setupSearch() {
   });
 }
 
-async function init() {
+async function loadNormalGames() {
+  const data = await loadGameData();
+
+  const providers = {};
+
+  (data.providers || []).forEach((p) => {
+    providers[p.name] = p;
+  });
+
+  return (data.games || []).map((g) => normalizeGame(g, providers));
+}
+
+async function loadGamesForSource(source) {
+  if (source === "lumin") {
+    return loadLuminGames();
+  }
+
+  return loadNormalGames();
+}
+
+async function switchSource(source) {
+  grid.innerHTML = "";
+
+  const searchInput = document.getElementById("search-bar");
+
+  if (searchInput) {
+    searchInput.value = "";
+  }
+
   try {
-    const data = await loadGameData();
+    const games = await loadGamesForSource(source);
 
-    const providers = {};
+    render(games);
 
-    (data.providers || []).forEach((p) => {
-      providers[p.name] = p;
-    });
-
-    const normalized = (data.games || []).map((g) =>
-      normalizeGame(g, providers),
-    );
-
-    render(normalized);
-    setupSearch();
+    if (searchInput) {
+      searchInput.placeholder = `Search ${games.length} games...`;
+    }
   } catch (err) {
     console.error(err);
     showError();
   }
+}
+
+const SOURCE_STORAGE_KEY = "game-source";
+
+function getStoredSource() {
+  try {
+    const stored = localStorage.getItem(SOURCE_STORAGE_KEY);
+
+    return stored === "lumin" || stored === "normal" ? stored : null;
+  } catch {
+    return null;
+  }
+}
+
+function storeSource(source) {
+  try {
+    localStorage.setItem(SOURCE_STORAGE_KEY, source);
+  } catch {
+    // ignore storage failures (private browsing, disabled storage, etc.)
+  }
+}
+
+function setupSourceSelect() {
+  const select = document.getElementById("source-select");
+
+  if (!select) return;
+
+  select.addEventListener("change", (e) => {
+    storeSource(e.target.value);
+    switchSource(e.target.value);
+  });
+}
+
+async function init() {
+  setupSearch();
+  setupSourceSelect();
+
+  const select = document.getElementById("source-select");
+  const stored = getStoredSource();
+
+  if (select && stored) {
+    select.value = stored;
+  }
+
+  await switchSource(select ? select.value : "normal");
 }
 
 init();

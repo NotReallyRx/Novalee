@@ -105,11 +105,44 @@
       .card-credit:hover {
         color: var(--text);
       }
+
+      #search-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      #source-select {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 8px 10px;
+        border-radius: 8px;
+        font-family: "DM Mono", monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.04em;
+        outline: none;
+        cursor: pointer;
+        transition:
+          border-color 0.15s ease,
+          background 0.15s ease,
+          box-shadow 0.15s ease;
+      }
+
+      #source-select:focus,
+      #source-select:hover {
+        border-color: var(--border-hi);
+        background: var(--raised);
+      }
     </style>
   </head>
   <body>
     <div id="app">
       <div id="search-container">
+        <select id="source-select">
+          <option value="normal" selected>Normal</option>
+          <option value="lumin">LuminSDK</option>
+        </select>
         <input id="search-bar" type="text" placeholder="Search games..." />
       </div>
       <div id="content">
@@ -123,6 +156,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/luminsdk/script@latest/lumin.min.js"></script>
     <script src="load.js"></script>
     <script src="g.js"></script>
   </body>
