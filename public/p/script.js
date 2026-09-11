@@ -31,9 +31,9 @@ document.addEventListener("DOMContentLoaded", async function () {
   scramjet = new ScramjetController({
     prefix: basePath + "scramjet/",
     files: {
-      wasm: "https://cdn.jsdelivr.net/gh/Destroyed12121/Staticsj@main/JS/scramjet.wasm.wasm",
-      all: "https://cdn.jsdelivr.net/gh/Destroyed12121/Staticsj@main/JS/scramjet.all.js",
-      sync: "https://cdn.jsdelivr.net/gh/Destroyed12121/Staticsj@main/JS/scramjet.sync.js",
+      wasm: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@1.1.0/dist/scramjet.wasm.wasm",
+      all: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@1.1.0/dist/scramjet.all.js",
+      sync: "https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@1.1.0/dist/scramjet.sync.js",
     },
   });
 
@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       basePath + "bareworker.js",
     );
     await connection.setTransport(
-      "https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport@2.1.28/dist/index.mjs",
+      "https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport@3.0.1/dist/index.mjs",
       [{ wisp: wispUrl }],
     );
   }
