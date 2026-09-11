@@ -1,4 +1,4 @@
-const DEFAULT_WISP = `wss://${location.hostname}/w/`;
+const DEFAULT_WISP = `wss://${location.hostname}/wisp/`;
 
 const WISP_SERVERS = [
   { name: "Novalee's Wisp", url: DEFAULT_WISP },
