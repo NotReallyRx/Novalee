@@ -1,0 +1,13 @@
+left:
+  - name: Home
+    link: /
+  - name: Games
+    link: /g/
+  - name: Proxy
+    link: /p/
+
+right:
+  - name: Settings
+    link: /s/
+  - name: Discord
+    link: https://discord.gg/VGJpvuYEtc
