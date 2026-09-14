@@ -15,10 +15,10 @@ import:
       HTML_URL: https://cdn.jsdelivr.net/gh/freebuisness/html@main
     category: normal
   - name: truffled
-    url: /pr/?url=https://truffled.lol/js/json/g.json
+    url: /pr/?url=https://truffled.rxk.workers.dev/js/json/g.json
     plugin: truffled
     env:
-      ROOT_URL: https://truffled.lol
+      ROOT_URL: https://truffled.rxk.workers.dev
     category: "truffled (wip)"
   - name: luminsdk
     plugin: luminsdk
