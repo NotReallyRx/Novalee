@@ -15,18 +15,28 @@ const iframeRules = {
 };
 
 /*
- * Config for the truffled.lol proxy mounted at /tr.
- * Change mountPath here if you ever want it served
- * under a different prefix.
+ * Config for the truffled.lol proxies. TRUFFLED_PNG_CONFIG is
+ * more specific ("/tr/png") than TRUFFLED_CONFIG ("/tr"), so it
+ * must be checked first below, otherwise the general "/tr" route
+ * would swallow "/tr/png/..." requests first.
  */
 const TRUFFLED_CONFIG = {
   upstream: "https://truffled.lol/games/",
   mountPath: "/tr",
 };
 
+const TRUFFLED_PNG_CONFIG = {
+  upstream: "https://truffled.lol/png/",
+  mountPath: "/tr/png",
+};
+
 export default {
   async fetch(request, env) {
     const requestUrl = new URL(request.url);
+
+    if (requestUrl.pathname.startsWith(TRUFFLED_PNG_CONFIG.mountPath)) {
+      return truffledFetch(request, TRUFFLED_PNG_CONFIG);
+    }
 
     if (requestUrl.pathname.startsWith(TRUFFLED_CONFIG.mountPath)) {
       return truffledFetch(request, TRUFFLED_CONFIG);
