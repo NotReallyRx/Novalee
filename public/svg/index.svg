@@ -1,44 +1,19 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg
-    xmlns="http://www.w3.org/2000/svg"
-    xmlns:xhtml="http://www.w3.org/1999/xhtml"
-    width="100%"
-    height="100%"
-    viewBox="0 0 1920 1080"
->
-    <foreignObject
-        x="0"
-        y="0"
-        width="1920"
-        height="1080"
-    >
-        <xhtml:html>
-            <xhtml:head>
-                <xhtml:style>
-                    html, body {
-                        margin: 0;
-                        padding: 0;
-                        width: 100%;
-                        height: 100%;
-                        overflow: hidden;
-                    }
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+  <foreignObject x="0" y="0" width="100%" height="100%">
+    <div xmlns="http://www.w3.org/1999/xhtml" id="content">
+      Loading...
+    </div>
+  </foreignObject>
 
-                    iframe {
-                        width: 100%;
-                        height: 100%;
-                        border: none;
-                        display: block;
-                    }
-                </xhtml:style>
-            </xhtml:head>
-
-            <xhtml:body>
-                <xhtml:iframe
-                    src="../index.html"
-                    allow="fullscreen; autoplay; picture-in-picture"
-                    allowfullscreen="true"
-                ></xhtml:iframe>
-            </xhtml:body>
-        </xhtml:html>
-    </foreignObject>
+  <script>
+    fetch("../index.html")
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById("content").innerHTML = html;
+      })
+      .catch(error => {
+        document.getElementById("content").textContent =
+          "Couldn't grab index.html: " + error;
+      });
+  </script>
 </svg>
