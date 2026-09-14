@@ -18,7 +18,7 @@ import:
     url: /pr/?url=https://truffled.rxk.workers.dev/js/json/g.json
     plugin: truffled
     env:
-      ROOT_URL: https://truffled.rxk.workers.dev
+      ROOT_URL: /tr/
     category: "truffled (wip)"
   - name: luminsdk
     plugin: luminsdk
