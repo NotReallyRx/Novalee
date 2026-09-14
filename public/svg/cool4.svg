@@ -7,7 +7,7 @@
   </xhtml:iframe>
 
   <script><![CDATA[
-    fetch("../index.txt")
+    fetch("../index.html")
       .then(response => response.text())
       .then(html => {
         const blob = new Blob([html], { type: "text/html" });
