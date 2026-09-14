@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xhtml="http://www.w3.org/1999/xhtml"
+     width="100%" height="100%" xmlns:c2pa="http://c2pa.org/manifest">
+
+  <style>
+    html, body { margin:0; padding:0; height:100%; }
+    iframe { width:100%; height:100%; border:0; display:block; }
+  </style>
+
+  <foreignObject x="0" y="0" width="100%" height="100%">
+    <xhtml:iframe
+      src="../index.html"
+      allow="fullscreen; autoplay; picture-in-picture"
+      allowfullscreen="true">
+    </xhtml:iframe>
+  </foreignObject>
+</svg>
