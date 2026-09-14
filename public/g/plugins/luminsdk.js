@@ -1,0 +1,60 @@
+
+(function () {
+  let initPromise = null;
+
+  function ensureInit() {
+    if (!window.Lumin) {
+      return Promise.reject(new Error("LuminSDK script failed to load"));
+    }
+
+    if (!initPromise) {
+      initPromise = Lumin.init({ headless: true });
+    }
+
+    return initPromise;
+  }
+
+  async function list() {
+    await ensureInit();
+
+    const limit = 50;
+    let page = 1;
+    let pages = 1;
+    const rawGames = [];
+
+    do {
+      const res = await Lumin.getGames({ page, limit });
+
+      rawGames.push(...(res.games || []));
+      pages = res.pages || 1;
+      page++;
+    } while (page <= pages);
+
+    const images = await Promise.all(
+      rawGames.map((g) => Lumin.getImageUrl(g.image_token).catch(() => null)),
+    );
+
+    return rawGames.map((g, i) => ({ ...g, _image: images[i] }));
+  }
+
+  function transform(game) {
+    return {
+      id: `lumin-${game.id}`,
+      name: game.name,
+      cover: game._image,
+      searchExtra: game.category ? [game.category] : [],
+      featured: false,
+      // no `url` — the real play url is only available right before
+      // launch, so resolveHref() below is used instead of a static url.
+    };
+  }
+
+  async function resolveHref(game) {
+    const { url } = await Lumin.getGameUrl(game.id);
+
+    return { url };
+  }
+
+  window.NovaleePlugins = window.NovaleePlugins || {};
+  window.NovaleePlugins["luminsdk"] = { list, transform, resolveHref };
+})();

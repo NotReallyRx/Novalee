@@ -19,10 +19,16 @@ function joinPath(dir, file) {
   return dir.replace(/\/+$/, "") + "/" + file.replace(/^\/+/, "");
 }
 
-function buildLaunchHref(targetUrl, name) {
+function buildLaunchHref(targetUrl, name, frameType) {
   if (!targetUrl) return null;
 
-  return `/i/?u=${encodeURIComponent(targetUrl)}&n=${encodeURIComponent(name || "")}`;
+  let href = `/i/?u=${encodeURIComponent(targetUrl)}&n=${encodeURIComponent(name || "")}`;
+
+  if (frameType) {
+    href += `&t=${encodeURIComponent(frameType)}`;
+  }
+
+  return href;
 }
 
 function resolveYamlTarget(provider, final) {
@@ -121,106 +127,195 @@ function normalizeYamlGame(game, providers) {
     creditHref: final.credit ? `/r/?=${final.credit}` : null,
     searchExtra: final.search || [],
     featured: !!final.featured,
+    category: game._category || null,
   };
 }
 
-function expandPlaceholders(str, env) {
-  if (typeof str !== "string" || !env) return str;
+// --- Plugin system for non-yaml game sources -------------------------------
+//
+// A source declared in g.yml (via `import[].plugin`) loads a small script at
+// /g/plugins/<name>.js on demand, which registers itself on
+// window.NovaleePlugins. A plugin module can be:
+//
+// 1. A bare transform function — for imports that have a `url` pointing at a
+//    raw JSON array (e.g. gn-math, truffled). load.js fetches the array;
+//    the plugin just maps one raw entry to normalized fields:
+//
+//      window.NovaleePlugins["<name>"] = function transform(rawGame, env) {
+//        return {
+//          id, name, url, cover, credit, creditHref,
+//          searchExtra, featured, frameType,
+//        };
+//      };
+//
+// 2. An object, for sources with no `url`/`file`/`dir` in g.yml at all,
+//    where the plugin owns fetching its own games (e.g. an SDK-backed
+//    source like LuminSDK):
+//
+//      window.NovaleePlugins["<name>"] = {
+//        list: async function (env) { return [rawGame, ...]; },
+//        transform: function (rawGame, env) { return { id, name, ... }; },
+//        // optional — called at click time when a static `url` isn't
+//        // known up front (e.g. Lumin only hands out play urls on demand):
+//        resolveHref: async function (rawGame, env) { return { url, frameType }; },
+//      };
+//
+// `env` is whatever was set under that import's `env:` in g.yml (e.g.
+// COVER_URL/HTML_URL for gn-math, ROOT_URL for truffled).
 
-  let result = str;
+const PLUGIN_BASE = "/g/plugins/";
+const pluginLoadPromises = {};
 
-  for (const [key, value] of Object.entries(env)) {
-    result = result.replaceAll(`{${key}}`, value);
-  }
-
-  return result;
+function pluginScriptUrl(name) {
+  return /^https?:\/\//i.test(name) ? name : `${PLUGIN_BASE}${name}.js`;
 }
 
-function normalizeJsonGame(game) {
-  const id = game.id != null ? String(game.id) : slugify(game.name);
-  const env = game._env || {};
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
 
-  const targetUrl = expandPlaceholders(game.url, env);
+    script.src = src;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error(`Failed to load plugin script: ${src}`));
+
+    document.head.appendChild(script);
+  });
+}
+
+function getPluginModule(name) {
+  return window.NovaleePlugins && window.NovaleePlugins[name];
+}
+
+function getTransform(name) {
+  const mod = getPluginModule(name);
+
+  if (typeof mod === "function") return mod;
+  if (mod && typeof mod.transform === "function") return mod.transform;
+
+  return null;
+}
+
+function getLister(name) {
+  const mod = getPluginModule(name);
+
+  return mod && typeof mod.list === "function" ? mod.list : null;
+}
+
+function getHrefResolver(name) {
+  const mod = getPluginModule(name);
+
+  return mod && typeof mod.resolveHref === "function" ? mod.resolveHref : null;
+}
+
+async function ensurePlugin(name) {
+  if (!name || getPluginModule(name)) return;
+
+  if (!pluginLoadPromises[name]) {
+    pluginLoadPromises[name] = loadScript(pluginScriptUrl(name)).catch((e) => {
+      console.warn(`Plugin "${name}" failed to load:`, e);
+    });
+  }
+
+  await pluginLoadPromises[name];
+}
+
+async function ensurePlugins(names) {
+  await Promise.all([...new Set(names.filter(Boolean))].map(ensurePlugin));
+}
+
+function normalizePluginGame(game) {
+  const pluginName = game._plugin;
+  const transform = getTransform(pluginName);
+
+  if (!transform) {
+    console.warn(`No transform registered for plugin "${pluginName}", skipping`, game);
+    return null;
+  }
+
+  let result;
+
+  try {
+    result = transform(game, game._env || {});
+  } catch (e) {
+    console.warn(`Plugin "${pluginName}" threw on game`, game, e);
+    return null;
+  }
+
+  if (!result || !result.name) return null;
+
+  const id = result.id != null ? String(result.id) : slugify(result.name);
+  const hasResolver = !!getHrefResolver(pluginName);
 
   return {
     id,
-    name: game.name,
-    href: buildLaunchHref(targetUrl, game.name),
-    icon: expandPlaceholders(game.cover, env),
-    credit: game.author || null,
-    creditHref: game.authorLink || null,
-    searchExtra: game.special || [],
-    featured: !!game.featured,
+    name: result.name,
+    href: result.url ? buildLaunchHref(result.url, result.name, result.frameType) : null,
+    icon: result.cover,
+    credit: result.credit || null,
+    creditHref: result.creditHref || (result.credit ? `/r/?=${result.credit}` : null),
+    searchExtra: result.searchExtra || [],
+    featured: !!result.featured,
+    category: game._category || null,
+    // These games have no static href (the plugin only hands out a real
+    // play url on demand). We keep enough info to resolve it at click time.
+    needsAsyncLaunch: !result.url && hasResolver,
+    _plugin: pluginName,
+    _raw: game,
+    _env: game._env || {},
   };
+}
+
+async function launchAsyncGame(g) {
+  const resolver = getHrefResolver(g._plugin);
+
+  if (!resolver) return;
+
+  const resolved = await resolver(g._raw, g._env);
+  const url = typeof resolved === "string" ? resolved : resolved && resolved.url;
+  const frameType = resolved && resolved.frameType;
+  const href = buildLaunchHref(url, g.name, frameType);
+
+  if (href) {
+    window.location.href = href;
+  }
 }
 
 function normalizeGame(game, providers) {
   if (game._format === "json") {
-    return normalizeJsonGame(game);
+    return normalizePluginGame(game);
   }
 
   return normalizeYamlGame(game, providers);
 }
 
-let luminInitPromise = null;
+// Expands a "plugin-source" stub (an import in g.yml with a `plugin` but no
+// `url`/`file`/`dir`) into raw games by calling that plugin's own list(),
+// then tags each one so it flows through normalizePluginGame like any other
+// plugin-backed game.
+async function expandPluginSource(stub) {
+  const lister = getLister(stub._plugin);
 
-function ensureLuminInit() {
-  if (!window.Lumin) {
-    return Promise.reject(new Error("LuminSDK script failed to load"));
+  if (!lister) {
+    console.warn(`No list() found for plugin "${stub._plugin}"`);
+    return [];
   }
 
-  if (!luminInitPromise) {
-    luminInitPromise = Lumin.init({ headless: true });
+  let rawGames;
+
+  try {
+    rawGames = await lister(stub._env || {});
+  } catch (e) {
+    console.warn(`Plugin "${stub._plugin}" list() failed:`, e);
+    return [];
   }
 
-  return luminInitPromise;
-}
-
-function normalizeLuminGame(game, imgUrl) {
-  return {
-    id: `lumin-${game.id}`,
-    name: game.name,
-    href: null,
-    icon: imgUrl,
-    credit: null,
-    creditHref: null,
-    searchExtra: game.category ? [game.category] : [],
-    featured: false,
-    isLumin: true,
-    luminId: game.id,
-  };
-}
-
-async function loadLuminGames() {
-  await ensureLuminInit();
-
-  const limit = 50;
-  let page = 1;
-  let pages = 1;
-  const rawGames = [];
-
-  do {
-    const res = await Lumin.getGames({ page, limit });
-
-    rawGames.push(...(res.games || []));
-    pages = res.pages || 1;
-    page++;
-  } while (page <= pages);
-
-  const images = await Promise.all(
-    rawGames.map((g) => Lumin.getImageUrl(g.image_token).catch(() => null)),
-  );
-
-  return rawGames.map((g, i) => normalizeLuminGame(g, images[i]));
-}
-
-async function launchLuminGame(g) {
-  const { url } = await Lumin.getGameUrl(g.luminId);
-  const href = buildLaunchHref(url, g.name);
-
-  if (href) {
-    window.location.href = href;
-  }
+  return (rawGames || []).map((g) => ({
+    ...g,
+    _format: "json",
+    _plugin: stub._plugin,
+    _env: stub._env || {},
+    _category: stub._category,
+  }));
 }
 
 function render(games) {
@@ -236,12 +331,12 @@ function render(games) {
 
     if (g.href) {
       a.href = g.href;
-    } else if (g.isLumin) {
+    } else if (g.needsAsyncLaunch) {
       a.href = "#";
       a.addEventListener("click", (e) => {
         e.preventDefault();
-        launchLuminGame(g).catch((err) =>
-          console.error("Failed to launch Lumin game:", err),
+        launchAsyncGame(g).catch((err) =>
+          console.error("Failed to launch game:", err),
         );
       });
     }
@@ -376,8 +471,17 @@ function setupSearch() {
   });
 }
 
-async function loadNormalGames() {
-  const data = await loadGameData();
+// --- Config / game loading, scoped per category so switching is cheap -----
+//
+// Only the selected category's imports are ever fetched (see load.js's
+// `filter` pruning) — nothing else is downloaded until you pick it. Each
+// category's normalized game list is cached after first load so switching
+// back to it is instant.
+
+const gamesCache = new Map();
+
+async function loadNormalGames(category) {
+  const data = await loadGameData(category);
 
   const providers = {};
 
@@ -385,19 +489,91 @@ async function loadNormalGames() {
     providers[p.name] = p;
   });
 
-  return (data.games || []).map((g) => normalizeGame(g, providers));
+  const allGames = data.games || [];
+
+  const staticGames = allGames.filter((g) => g._format !== "plugin-source");
+  const pluginSources = allGames.filter((g) => g._format === "plugin-source");
+
+  const pluginNames = [
+    ...staticGames.filter((g) => g._format === "json").map((g) => g._plugin),
+    ...pluginSources.map((g) => g._plugin),
+  ];
+
+  await ensurePlugins(pluginNames);
+
+  const expandedSourceGroups = await Promise.all(
+    pluginSources.map((stub) => expandPluginSource(stub)),
+  );
+
+  const allRawGames = [...staticGames, ...expandedSourceGroups.flat()];
+
+  return allRawGames.map((g) => normalizeGame(g, providers)).filter(Boolean);
 }
 
-async function loadGamesForSource(source) {
-  if (source === "lumin") {
-    return loadLuminGames();
+function getGamesForCategory(category) {
+  const key = category || "all";
+
+  if (!gamesCache.has(key)) {
+    gamesCache.set(key, loadNormalGames(category));
   }
 
-  return loadNormalGames();
+  return gamesCache.get(key);
+}
+
+const CATEGORY_LABELS = {
+  luminsdk: "LuminSDK",
+};
+
+function categoryLabel(id) {
+  if (CATEGORY_LABELS[id]) return CATEGORY_LABELS[id];
+
+  return id
+    .split(/[-_]/)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+// Populated from g.yml's `category:` registry alone — no game data is
+// fetched just to build this dropdown.
+async function populateSourceSelect() {
+  const select = document.getElementById("source-select");
+
+  if (!select) return;
+
+  const categories = await loadCategoryRegistry();
+
+  select.innerHTML = "";
+
+  categories.forEach((id) => {
+    const opt = document.createElement("option");
+
+    opt.value = id;
+    opt.textContent = categoryLabel(id);
+    select.appendChild(opt);
+  });
+
+  const allOption = document.createElement("option");
+
+  allOption.value = "all";
+  allOption.textContent = "All";
+  select.appendChild(allOption);
+}
+
+function loadGamesForSource(source) {
+  return getGamesForCategory(source);
+}
+
+function showLoading() {
+  grid.innerHTML = `
+    <div class="loading">
+      <div class="spinner"></div>
+      <span>Loading games…</span>
+    </div>
+  `;
 }
 
 async function switchSource(source) {
-  grid.innerHTML = "";
+  showLoading();
 
   const searchInput = document.getElementById("search-bar");
 
@@ -408,6 +584,7 @@ async function switchSource(source) {
   try {
     const games = await loadGamesForSource(source);
 
+    grid.innerHTML = "";
     render(games);
 
     if (searchInput) {
@@ -423,9 +600,7 @@ const SOURCE_STORAGE_KEY = "game-source";
 
 function getStoredSource() {
   try {
-    const stored = localStorage.getItem(SOURCE_STORAGE_KEY);
-
-    return stored === "lumin" || stored === "normal" ? stored : null;
+    return localStorage.getItem(SOURCE_STORAGE_KEY) || null;
   } catch {
     return null;
   }
@@ -452,14 +627,25 @@ async function init() {
   setupSearch();
   setupSourceSelect();
 
+  await populateSourceSelect();
+
   const select = document.getElementById("source-select");
+  const options = select ? [...select.options].map((o) => o.value) : [];
   const stored = getStoredSource();
 
-  if (select && stored) {
-    select.value = stored;
+  // Default to the first category declared in g.yml rather than "All", so
+  // the initial load only fetches one source instead of everything.
+  let initial = "all";
+
+  if (stored && options.includes(stored)) {
+    initial = stored;
+  } else if (options.length) {
+    initial = options[0];
   }
 
-  await switchSource(select ? select.value : "normal");
+  if (select) select.value = initial;
+
+  await switchSource(initial);
 }
 
 init();

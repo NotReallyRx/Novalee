@@ -134,15 +134,41 @@
         border-color: var(--border-hi);
         background: var(--raised);
       }
+
+      #grid .loading {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 64px 0;
+        color: var(--muted);
+        font-family: "DM Mono", monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.04em;
+      }
+
+      .spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--border);
+        border-top-color: var(--text);
+        border-radius: 50%;
+        animation: novalee-spin 0.7s linear infinite;
+      }
+
+      @keyframes novalee-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
     </style>
   </head>
   <body>
     <div id="app">
       <div id="search-container">
-        <select id="source-select">
-          <option value="normal" selected>Normal</option>
-          <option value="lumin">LuminSDK</option>
-        </select>
+        <select id="source-select"></select>
         <input id="search-bar" type="text" placeholder="Search games..." />
       </div>
       <div id="content">

@@ -1,8 +1,25 @@
+category:
+  - name: normal
+  - name: luminsdk
+  - name: "truffled (wip)"
+
 import:
   - name: Novalee
     url: g.d/novalee.yml
+    category: normal
   - name: gn-math
     url: /pr/?url=https://cdn.jsdelivr.net/gh/freebuisness/assets@refs/heads/main/zones.json
+    plugin: gn-math
     env:
       COVER_URL: https://cdn.jsdelivr.net/gh/freebuisness/covers@main
       HTML_URL: https://cdn.jsdelivr.net/gh/freebuisness/html@main
+    category: normal
+  - name: truffled
+    url: /pr/?url=https://truffled.lol/js/json/g.json
+    plugin: truffled
+    env:
+      ROOT_URL: https://truffled.lol
+    category: "truffled (wip)"
+  - name: luminsdk
+    plugin: luminsdk
+    category: luminsdk
