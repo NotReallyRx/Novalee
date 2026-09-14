@@ -1,3 +1,5 @@
+import { truffledFetch } from "./p/truffled.js";
+
 const iframeRules = {
   "https://cdn.jsdelivr.net/gh/NotReallyRx/yesterdays-meat-port@main/index.html":
     "https://yesterdays-meat-port.pages.dev/",
@@ -12,9 +14,23 @@ const iframeRules = {
     "https://notreallyrx.github.io/C09FS/",
 };
 
+/*
+ * Config for the truffled.lol proxy mounted at /tr.
+ * Change mountPath here if you ever want it served
+ * under a different prefix.
+ */
+const TRUFFLED_CONFIG = {
+  upstream: "https://truffled.lol/games/",
+  mountPath: "/tr",
+};
+
 export default {
   async fetch(request, env) {
     const requestUrl = new URL(request.url);
+
+    if (requestUrl.pathname.startsWith(TRUFFLED_CONFIG.mountPath)) {
+      return truffledFetch(request, TRUFFLED_CONFIG);
+    }
 
     if (requestUrl.pathname.startsWith("/wisp/")) {
       requestUrl.hostname = "wisp-g1jr.onrender.com";
