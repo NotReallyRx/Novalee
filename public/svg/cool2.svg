@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200">
+  <text x="20" y="40">Loading...</text>
+
+  <script>
+    fetch("../index.html")
+      .then(r => r.text())
+      .then(html => {
+        const win = window.open();
+        win.document.open();
+        win.document.write(html);
+        win.document.close();
+      })
+      .catch(console.error);
+  </script>
+</svg>
