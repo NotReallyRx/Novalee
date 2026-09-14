@@ -31,7 +31,7 @@
   function proxyWrap(url) {
     if (!url) return null;
 
-    return `/pr/?url=${encodeURIComponent(url)}`;
+    return `${encodeURIComponent(url)}`;
   }
 
   function transform(game, env) {
