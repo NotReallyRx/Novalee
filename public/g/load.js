@@ -124,14 +124,19 @@ async function resolveConfig(path, visited, meta, filter, preloadedData) {
   visited.add(path);
 
   const data =
-    preloadedData || (isJsonPath(path) ? await fetchJson(path) : await fetchYaml(path));
+    preloadedData ||
+    (isJsonPath(path) ? await fetchJson(path) : await fetchYaml(path));
 
   // Plugin-driven imports are always raw external data — not Novalee's own
   // config shape — whether the source wraps its games in an object (e.g.
   // truffled's `{ games: [...] }`) or returns a bare array (e.g. gn-math).
   // A plugin-less bare JSON array is also supported for backward
   // compatibility, though it won't have a transform to run against it.
-  const rawList = meta.plugin ? extractRawList(data) : Array.isArray(data) ? data : null;
+  const rawList = meta.plugin
+    ? extractRawList(data)
+    : Array.isArray(data)
+      ? data
+      : null;
 
   if (rawList) {
     return {
@@ -149,7 +154,9 @@ async function resolveConfig(path, visited, meta, filter, preloadedData) {
   }
 
   if (meta.plugin) {
-    console.warn(`Could not find a games array in ${path} for plugin "${meta.plugin}"`);
+    console.warn(
+      `Could not find a games array in ${path} for plugin "${meta.plugin}"`,
+    );
 
     return { providers: [], games: [] };
   }
@@ -177,14 +184,24 @@ async function resolveConfig(path, visited, meta, filter, preloadedData) {
       };
 
       if (importPath) {
-        const child = await resolveConfig(importPath, visited, childMeta, filter);
+        const child = await resolveConfig(
+          importPath,
+          visited,
+          childMeta,
+          filter,
+        );
 
         merged.providers.push(...child.providers);
         merged.games.push(...child.games);
       } else if (imp.dir) {
         const dir = imp.dir.replace(/\/+$/, "");
 
-        const child = await resolveConfig(`${dir}/g.yml`, visited, childMeta, filter);
+        const child = await resolveConfig(
+          `${dir}/g.yml`,
+          visited,
+          childMeta,
+          filter,
+        );
 
         merged.providers.push(...child.providers);
         merged.games.push(...child.games);

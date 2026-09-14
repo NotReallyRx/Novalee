@@ -176,7 +176,8 @@ function loadScript(src) {
 
     script.src = src;
     script.onload = () => resolve();
-    script.onerror = () => reject(new Error(`Failed to load plugin script: ${src}`));
+    script.onerror = () =>
+      reject(new Error(`Failed to load plugin script: ${src}`));
 
     document.head.appendChild(script);
   });
@@ -228,7 +229,10 @@ function normalizePluginGame(game) {
   const transform = getTransform(pluginName);
 
   if (!transform) {
-    console.warn(`No transform registered for plugin "${pluginName}", skipping`, game);
+    console.warn(
+      `No transform registered for plugin "${pluginName}", skipping`,
+      game,
+    );
     return null;
   }
 
@@ -249,10 +253,13 @@ function normalizePluginGame(game) {
   return {
     id,
     name: result.name,
-    href: result.url ? buildLaunchHref(result.url, result.name, result.frameType) : null,
+    href: result.url
+      ? buildLaunchHref(result.url, result.name, result.frameType)
+      : null,
     icon: result.cover,
     credit: result.credit || null,
-    creditHref: result.creditHref || (result.credit ? `/r/?=${result.credit}` : null),
+    creditHref:
+      result.creditHref || (result.credit ? `/r/?=${result.credit}` : null),
     searchExtra: result.searchExtra || [],
     featured: !!result.featured,
     category: game._category || null,
@@ -271,7 +278,8 @@ async function launchAsyncGame(g) {
   if (!resolver) return;
 
   const resolved = await resolver(g._raw, g._env);
-  const url = typeof resolved === "string" ? resolved : resolved && resolved.url;
+  const url =
+    typeof resolved === "string" ? resolved : resolved && resolved.url;
   const frameType = resolved && resolved.frameType;
   const href = buildLaunchHref(url, g.name, frameType);
 

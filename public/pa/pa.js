@@ -51,9 +51,7 @@
       });
 
       if (!response.ok) {
-        throw new Error(
-          `Failed to load pa.yml: ${response.status}`
-        );
+        throw new Error(`Failed to load pa.yml: ${response.status}`);
       }
 
       const text = await response.text();
@@ -68,10 +66,7 @@
         if (!page.link) return false;
 
         try {
-          const pageUrl = new URL(
-            page.link,
-            window.location.origin
-          );
+          const pageUrl = new URL(page.link, window.location.origin);
 
           // External links should never be marked active.
           if (pageUrl.origin !== currentUrl.origin) {
@@ -84,21 +79,16 @@
           }
 
           // Normalize section paths.
-          const sectionPath =
-            pageUrl.pathname.endsWith("/")
-              ? pageUrl.pathname
-              : pageUrl.pathname + "/";
+          const sectionPath = pageUrl.pathname.endsWith("/")
+            ? pageUrl.pathname
+            : pageUrl.pathname + "/";
 
           return (
             currentUrl.pathname === pageUrl.pathname ||
             currentUrl.pathname.startsWith(sectionPath)
           );
         } catch (error) {
-          console.warn(
-            "Invalid toolbar link:",
-            page.link,
-            error
-          );
+          console.warn("Invalid toolbar link:", page.link, error);
 
           return false;
         }
@@ -110,8 +100,7 @@
       function createLink(page) {
         const link = document.createElement("a");
 
-        link.className =
-          `tb-btn${isActive(page) ? " active" : ""}`;
+        link.className = `tb-btn${isActive(page) ? " active" : ""}`;
 
         link.href = page.link || "#";
         link.textContent = page.name || "";
@@ -120,30 +109,19 @@
       }
 
       // Remove previously inserted toolbar buttons.
-      toolbar
-        .querySelectorAll(".tb-btn")
-        .forEach((button) => button.remove());
+      toolbar.querySelectorAll(".tb-btn").forEach((button) => button.remove());
 
       // Add left-side links before the label.
       pages.left.forEach((page) => {
-        toolbar.insertBefore(
-          createLink(page),
-          label
-        );
+        toolbar.insertBefore(createLink(page), label);
       });
 
       // Add right-side links after the label.
       pages.right.forEach((page) => {
-        toolbar.appendChild(
-          createLink(page)
-        );
+        toolbar.appendChild(createLink(page));
       });
-
     } catch (error) {
-      console.error(
-        "Failed to load toolbar pages:",
-        error
-      );
+      console.error("Failed to load toolbar pages:", error);
     }
   }
 
@@ -173,10 +151,7 @@
       const trimmed = line.trim();
 
       // Ignore empty lines and comments.
-      if (
-        !trimmed ||
-        trimmed.startsWith("#")
-      ) {
+      if (!trimmed || trimmed.startsWith("#")) {
         continue;
       }
 
@@ -201,10 +176,7 @@
       }
 
       // Parse a new item.
-      const item =
-        trimmed.match(
-          /^-\s+name:\s*(.*)$/
-        );
+      const item = trimmed.match(/^-\s+name:\s*(.*)$/);
 
       if (item) {
         current = {
@@ -223,14 +195,10 @@
       }
 
       // Parse the link.
-      const link =
-        trimmed.match(
-          /^link:\s*(.*)$/
-        );
+      const link = trimmed.match(/^link:\s*(.*)$/);
 
       if (link) {
-        current.link =
-          link[1].trim();
+        current.link = link[1].trim();
       }
     }
 
@@ -245,5 +213,4 @@
    * after DOMContentLoaded.
    */
   loadPages();
-
 })();
