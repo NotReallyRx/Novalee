@@ -2,7 +2,7 @@
   const LOCK_ENABLED = false;
 
   const HASH =
-    "7d9b0729ffe07d6557c8db04fc6f23dfeb2f2db8bb0564f934e3cb8ed5825dd9";
+    "242ab4ac31522e28fb16163c45c0c19e4402c4a32bcb3b144e7c2edce675b150";
   const STORAGE_KEY = "pass";
   const LOCK_PAGE = "/lock.html";
 
