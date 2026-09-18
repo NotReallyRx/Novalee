@@ -1,5 +1,5 @@
 (async function () {
-  const LOCK_ENABLED = false;
+  const LOCK_ENABLED = true;
 
   const HASH =
     "242ab4ac31522e28fb16163c45c0c19e4402c4a32bcb3b144e7c2edce675b150";
